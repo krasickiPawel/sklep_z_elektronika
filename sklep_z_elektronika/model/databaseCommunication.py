@@ -23,8 +23,10 @@ class DatabaseCommunication:
         try:
             self.cursor.execute(f'SELECT * FROM {view}')
             resultList = self.cursor.fetchall()
+            returnList = []
             for result in resultList:
-                print(result)
+                returnList.append(result)
+            return returnList
         except Exception as e:
             print(e)
 
@@ -38,13 +40,30 @@ class DatabaseCommunication:
     def callStoredProcedureWithReturn(self, name, args):
         try:
             self.cursor.callproc(name, args)
+            resultList = []
             for result in self.cursor.stored_results():
-                print(result.fetchall())
+                resultList = result.fetchall()
+            return resultList
+        except mysql.connector.Error as e:
+            print(e)
+
+    def callLoginProcedure(self, name, args):
+        try:
+            resultArgs = self.cursor.callproc(name, args)
+            return resultArgs[0], resultArgs[1]
+        except mysql.connector.Error as e:
+            print(e)
+
+    def callRegisterProcedure(self, name, args):
+        try:
+            resultArgs = self.cursor.callproc(name, args)
+            self.db.commit()
+            return resultArgs[0]
         except mysql.connector.Error as e:
             print(e)
 
     def checkProductAmount(self, productID):
-        self.callStoredProcedureWithReturn('sprawdz_ilosc_produktu', [productID])
+        return self.callStoredProcedureWithReturn('sprawdz_ilosc_produktu', [productID])
 
 
 class ClientCommunicationWithDatabase:
@@ -52,10 +71,10 @@ class ClientCommunicationWithDatabase:
         self.databaseCommunication = databaseCommunication
 
     def showProducts(self):
-        self.databaseCommunication.show('produkty')
+        return self.databaseCommunication.show('produkty')
 
     def showBasket(self, userID):
-        self.databaseCommunication.callStoredProcedureWithReturn('pokaz_koszyk', [userID])
+        return self.databaseCommunication.callStoredProcedureWithReturn('pokaz_koszyk', [userID])
 
     def addToBasket(self, userID, productID):
         self.databaseCommunication.callStoredProcedureWithoutReturn('dodaj_do_koszyka', [userID, productID, datetime.now()])
@@ -64,16 +83,22 @@ class ClientCommunicationWithDatabase:
         self.databaseCommunication.callStoredProcedureWithoutReturn('kup_produkt', [orderID])
 
     def showShopHist(self, userID):
-        self.databaseCommunication.callStoredProcedureWithReturn('pokaz_historie_zamowien_klienta', [userID])
+        return self.databaseCommunication.callStoredProcedureWithReturn('pokaz_historie_zamowien_klienta', [userID])
 
     def searchProductUsingName(self, productName):
-        self.databaseCommunication.callStoredProcedureWithReturn('wyszukaj_produkt_po_nazwie', [productName])
+        return self.databaseCommunication.callStoredProcedureWithReturn('wyszukaj_produkt_po_nazwie', [productName])
 
     def login(self, username, password):
-        self.databaseCommunication.callStoredProcedureWithReturn('zaloguj_uzytkownika', [username, password])
+        success = -1
+        userID = 0
+        return self.databaseCommunication.callLoginProcedure('zaloguj_uzytkownika', [success, userID, username, password, "klient"])
 
     def register(self, username, password, name, surname, email, phoneNumber, address):
-        self.databaseCommunication.callStoredProcedureWithoutReturn('zarejestruj_uzytkownika', [username, password, name, surname, email, phoneNumber, address])
+        success = -1
+        return self.databaseCommunication.callRegisterProcedure('zarejestruj_uzytkownika', [success, username, password, name, surname, email, phoneNumber, address, "klient"])
+
+    def getUserData(self, userID):
+        return self.databaseCommunication.callStoredProcedureWithReturn('zwroc_dane_uzytkownika', [userID])
 
 
 class EmployeeCommunicationWithDatabase:
@@ -81,28 +106,30 @@ class EmployeeCommunicationWithDatabase:
         self.databaseCommunication = databaseCommunication
 
     def showProductsUnavailable(self):
-        self.databaseCommunication.show('produkty_niedostepne')
+        return self.databaseCommunication.show('produkty_niedostepne')
 
     def showOrdersCanceled(self):
-        self.databaseCommunication.show('zamowienia_anulowane')
+        return self.databaseCommunication.show('zamowienia_anulowane')
 
     def showOrdersInRealization(self):
-        self.databaseCommunication.show('zamowienia_w_trakcie_realizacji')
+        return self.databaseCommunication.show('zamowienia_w_trakcie_realizacji')
 
     def showOrdersCompleted(self):
-        self.databaseCommunication.show('zamowienia_zrealizowane')
+        return self.databaseCommunication.show('zamowienia_zrealizowane')
 
     def login(self, username, password):
-        self.databaseCommunication.callStoredProcedureWithReturn('zaloguj_uzytkownika', [username, password])
+        success = -1
+        userID = 0
+        return self.databaseCommunication.callLoginProcedure('zaloguj_uzytkownika', [success, userID, username, password, "pracownik"])
 
     def searchOrderUsingID(self, orderID):
-        self.databaseCommunication.callStoredProcedureWithReturn('wyszukaj_zamowienie_po_id', [orderID])
+        return self.databaseCommunication.callStoredProcedureWithReturn('wyszukaj_zamowienie_po_id', [orderID])
 
     def searchProductUsingID(self, productID):
-        self.databaseCommunication.callStoredProcedureWithReturn('wyszukaj_produkt_po_id', [productID])
+        return self.databaseCommunication.callStoredProcedureWithReturn('wyszukaj_produkt_po_id', [productID])
 
     def searchProductUsingName(self, productName):
-        self.databaseCommunication.callStoredProcedureWithReturn('wyszukaj_produkt_po_nazwie', [productName])
+        return self.databaseCommunication.callStoredProcedureWithReturn('wyszukaj_produkt_po_nazwie', [productName])
 
     def confirmOrder(self, orderID):
         self.databaseCommunication.callStoredProcedureWithoutReturn('potwierdz_zamowienie', [orderID])
@@ -129,4 +156,7 @@ class EmployeeCommunicationWithDatabase:
         self.databaseCommunication.callStoredProcedureWithoutReturn('wprowadz_nowy_produkt', [name, price, category, amount])
 
     def checkProductAmount(self, productID):
-        self.databaseCommunication.checkProductAmount(productID)
+        return self.databaseCommunication.checkProductAmount(productID)
+
+    def getUserData(self, userID):
+        return self.databaseCommunication.callStoredProcedureWithReturn('zwroc_dane_uzytkownika', [userID])

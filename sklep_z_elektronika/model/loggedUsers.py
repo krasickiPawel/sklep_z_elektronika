@@ -1,9 +1,9 @@
 class LoggedUsers:
     def __init__(self):
-        self.loggedUsers = []
+        self.loggedUsers = dict()
 
-    def addLoggedUser(self, user):
-        self.loggedUsers.append(user)
+    def addLoggedUser(self, userID, user):
+        self.loggedUsers[userID] = user
 
-    def removeLoggedUser(self, user):
-        self.loggedUsers.remove(user)
+    def removeLoggedUser(self, userID):
+        self.loggedUsers.pop(userID)

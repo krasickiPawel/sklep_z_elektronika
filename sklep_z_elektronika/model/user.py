@@ -1,7 +1,8 @@
 class User:
-    def __init__(self, userType, userID, name, surname, email, phoneNumber, address, login, password):
+    def __init__(self, userType, name, surname, email, phoneNumber, address, login, password):
+        self.dbConnector = None
         self.userType = userType
-        self.id = userID
+        self.id = None
         self.name = name
         self.surname = surname
         self.email = email
@@ -10,8 +11,17 @@ class User:
         self.login = login
         self.password = password
 
+    def setID(self, _id):
+        self.id = _id
+
     def getID(self):
         return self.id
+
+    def setDbConnector(self, dbConnector):
+        self.dbConnector = dbConnector
+
+    def getDBConnector(self):
+        return self.dbConnector
 
     def getName(self):
         return self.name
@@ -30,12 +40,12 @@ class User:
 
 
 class Client(User):
-    def __init__(self, clientCommunicationWithDatabase, userID, name, surname, email, phoneNumber, address, login, password):
-        super().__init__("client", userID, name, surname, email, phoneNumber, address, login, password)
+    def __init__(self, clientCommunicationWithDatabase, name, surname, email, phoneNumber, address, login, password):
+        super().__init__("klient", name, surname, email, phoneNumber, address, login, password)
         self.clientCommunicationWithDatabase = clientCommunicationWithDatabase
 
 
 class Employee(User):
-    def __init__(self, employeeCommunicationWithDatabase, userID, name, surname, email, phoneNumber, address, login, password):
-        super().__init__("employee", userID, name, surname, email, phoneNumber, address, login, password)
+    def __init__(self, employeeCommunicationWithDatabase, name, surname, email, phoneNumber, address, login, password):
+        super().__init__("pracownik", name, surname, email, phoneNumber, address, login, password)
         self.employeeCommunicationWithDatabase = employeeCommunicationWithDatabase
