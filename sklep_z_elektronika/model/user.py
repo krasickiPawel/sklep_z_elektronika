@@ -1,8 +1,8 @@
 class User:
-    def __init__(self, userType, name, surname, email, phoneNumber, address, login, password):
-        self.dbConnector = None
+    def __init__(self, controller, userID, name, surname, email, phoneNumber, address, login, password, userType):
+        self.dbController = controller
         self.userType = userType
-        self.id = None
+        self.id = userID
         self.name = name
         self.surname = surname
         self.email = email
@@ -11,17 +11,11 @@ class User:
         self.login = login
         self.password = password
 
-    def setID(self, _id):
-        self.id = _id
+    def getController(self):
+        return self.dbController
 
     def getID(self):
         return self.id
-
-    def setDbConnector(self, dbConnector):
-        self.dbConnector = dbConnector
-
-    def getDBConnector(self):
-        return self.dbConnector
 
     def getName(self):
         return self.name
@@ -40,12 +34,10 @@ class User:
 
 
 class Client(User):
-    def __init__(self, clientCommunicationWithDatabase, name, surname, email, phoneNumber, address, login, password):
-        super().__init__("klient", name, surname, email, phoneNumber, address, login, password)
-        self.clientCommunicationWithDatabase = clientCommunicationWithDatabase
+    def __init__(self, clientController, userID, name, surname, email, phoneNumber, address, login, password):
+        super().__init__(clientController, userID, name, surname, email, phoneNumber, address, login, password, "klient")
 
 
 class Employee(User):
-    def __init__(self, employeeCommunicationWithDatabase, name, surname, email, phoneNumber, address, login, password):
-        super().__init__("pracownik", name, surname, email, phoneNumber, address, login, password)
-        self.employeeCommunicationWithDatabase = employeeCommunicationWithDatabase
+    def __init__(self, employeeController, userID, name, surname, email, phoneNumber, address, login, password):
+        super().__init__(employeeController, userID, name, surname, email, phoneNumber, address, login, password, "pracownik")

@@ -7,3 +7,6 @@ class LoggedUsers:
 
     def removeLoggedUser(self, userID):
         self.loggedUsers.pop(userID)
+
+    def getLoggedUser(self, userID):
+        return self.loggedUsers.get(userID)
