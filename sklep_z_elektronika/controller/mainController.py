@@ -1,7 +1,9 @@
 from sklep_z_elektronika.model.database import Database
 from sklep_z_elektronika.model.user import Client, Employee
 from sklep_z_elektronika.model.loggedUsers import LoggedUsers
-from sklep_z_elektronika.controller.userController import ClientController, EmployeeController
+from sklep_z_elektronika.controller.userController import ClientController, EmployeeController, UserController
+from sklep_z_elektronika.model.order import Order, HistOrder
+from sklep_z_elektronika.model.product import Product
 
 
 class MainController:
@@ -9,77 +11,210 @@ class MainController:
         self.db = Database('localhost', 'root', 'mysql123', 'test_elektronika')
         self.loggedUsers = LoggedUsers()
 
-    def loginClient(self, request):
-        username = 0
-        password = 0
-
+    def clientLogin(self, email, password):     # TODO jeśli coś jest w basket to rzucić jakąś przypominajkę z alertu
         cc = ClientController(self.db)
         cc.connect()
 
-        success, _id = cc.login(username, password)
+        success, _id = cc.login(email, password)
 
-        print(success, _id, cc.getUserData(_id)[0])
         if success == 1:
-            name, surname, email, phoneNumber, address, username, password, userType = cc.getUserData(_id)[0]
-            user = Client(cc, _id, name, surname, email, phoneNumber, address, username, password)
-            self.loggedUsers.addLoggedUser(_id, user)
+            name, surname, email, phoneNumber, address = cc.getClientData(_id)
+            client = Client(_id, name, surname, email, phoneNumber, address, password)
+            basketOrders = cc.showBasketOrders(_id)
+            for basketOrder in basketOrders:
+                orderID, clientID, productID, date, status = basketOrder
+                order = Order(orderID, clientID, productID, date, status)
+                client.addOrderBasket(order)
+            shopHistOrders = cc.showShopHist(_id)
+            for shopHistOrder in shopHistOrders:
+                orderID, productName, productCategory, productPrice, date, status = shopHistOrder
+                histOrder = HistOrder(orderID, productName, productCategory, productPrice, date, status)
+                client.addOrderShopHist(histOrder)
+            self.loggedUsers.addLoggedClient(_id, client)
+            cc.disconnect()
+            return _id      # TODO w www wyswietlic pozniej produkty
+        else:
+            cc.disconnect()
+            return None
+            # TODO w www jeśli _id != None to dodać do ciasteczek czy tam gdzieś i później używać do getLoggedUser
 
-        cc.disconnect()
-        return _id  # w www jeśli _id != 0 to dodać do ciasteczek czy tam gdzieś i później używać do getLoggedUser
-
-    def loginEmployee(self, request):
-        username = 0
-        password = 0
-
+    def employeeLogin(self, username, password):
         ec = EmployeeController(self.db)
         ec.connect()
 
         success, _id = ec.login(username, password)
 
-        print(success, _id, ec.getUserData(_id)[0])
         if success == 1:
-            name, surname, email, phoneNumber, address, username, password, userType = ec.getUserData(_id)[0]
-            user = Employee(ec, _id, name, surname, email, phoneNumber, address, username, password)
-            self.loggedUsers.addLoggedUser(_id, user)
+            name, surname, email, phoneNumber, address, position, salary = ec.getEmployeeData(_id)[0]
+            employee = Employee(_id, name, surname, email, phoneNumber, address, password, position, salary)
+            self.loggedUsers.addLoggedEmployee(_id, employee)
+            ec.disconnect()
+            return _id
 
-        ec.disconnect()
-        return _id  # w www jeśli _id != 0 to dodać do ciasteczek czy tam gdzieś i później używać do getLoggedUser
+        else:
+            ec.disconnect()
+            return None
+            # TODO w www jeśli _id != None to dodać do ciasteczek czy tam gdzieś i później używać do getLoggedUser
 
-    def registerClient(self, request):
-        username = "login1"
-        password = "123"
-        name = "test rejestracji1"
-        surname = "xd1"
-        email = "test1@email.test"
-        phoneNumber = "545 324 212"
-        address = "add"
+    def clientRegister(self, name, surname, email, phoneNumber, address, password):
+        cc = ClientController(self.db)
+        cc.connect()
+
+        success = cc.register(name, surname, email, phoneNumber, address, password)
+
+        cc.disconnect()
+
+        return True if success == 1 else False  # TODO sprawdzic w www czy udalo sie zalogowac
+
+    def getLoggedClient(self, _id):
+        return self.loggedUsers.getLoggedClient(_id)
+
+    def getLoggedEmployee(self, _id):
+        return self.loggedUsers.getLoggedEmployee(_id)
+
+    def showProducts(self):
+        productList = []
+        uc = UserController(self.db)
+        uc.connect()
+        productListFromDB = uc.showProducts()
+        uc.disconnect()
+        for productFromDB in productListFromDB:
+            productID, name, price, category, amount = productFromDB
+            product = Product(productID, name, price, category, amount)
+            productList.append(product)
+
+        if len(productList) > 0:
+            return productList  # TODO sprawdzic czy nie None, sprawdzic czy iloscProduktu nie jest 0 jest tak zaznaczyc
+        else:
+            return None
+
+    def clientShowBasketOrders(self, _id):
+        client = self.loggedUsers.getLoggedClient(_id)
+        basket = client.getBasket()
+        return basket   # TODO sprawdzic czy nie jest pusty, jeśli jest to wypisać "twój koszyk jest pusty", pamiętać że po każdym dodaniu i usunięciu z koszyka należy wyświetlić (przeładować) koszyk
+
+    def clientShowFormattedBasket(self, _id):
+        cc = ClientController(self.db)
+        cc.connect()
+        basketFromDB = cc.showFormattedBasket(_id)
+        cc.disconnect()
+
+        return basketFromDB
+
+    def clientAddToBasket(self, _id, productID):    # dodanie do koszyka nie rezerwuje produktu (nie zmniejsza jego ilosci w bazie) - dopiero "zamów" to robi
+        cc = ClientController(self.db)
+        cc.connect()
+        cc.addToBasket(_id, productID)
+
+        clientBasket = self.clientShowBasketOrders(_id)
+        basketSet = set()
+        for clientBasketOrder in clientBasket:
+            basketSet.add(clientBasketOrder.getOrderID())
+
+        newOrder = None
+        basketList = cc.showBasketOrders(_id)
+        cc.disconnect()
+
+        for basketOrder in basketList:
+            if basketOrder[0] not in basketSet:
+                newOrder = basketOrder
+
+        if newOrder is not None:
+            orderID, clientID, productID, date, status = newOrder
+            orderToAddToClientBasket = Order(orderID, clientID, productID, date, status)
+            client = self.loggedUsers.getLoggedClient(_id)
+            client.addOrderBasket(orderToAddToClientBasket)
+            return True
+        else:
+            return False
+
+    def clientRemoveFromBasket(self, _id, orderID):
+        cc = ClientController(self.db)
+        cc.connect()
+        cc.removeFromBasket(orderID)
+        client = self.getLoggedClient(_id)
+        orderToBeRemoved = None
+        basket = client.getBasket()
+        for existingOrder in basket:
+            if existingOrder.getOrderID() == orderID:
+                orderToBeRemoved = existingOrder
+        client.removeOrderBasket(orderToBeRemoved)
+
+        databaseCheck = False
+        applicationCheck = False
+        checkIDSetDatabase = set()
+        checkIDSetApplication = set()
+
+        checkOrderList = cc.showBasketOrders(_id)
+        cc.disconnect()
+        checkBasket = client.getBasket()
+
+        for order in checkOrderList:
+            checkIDSetDatabase.add(order[0])
+        if orderID not in checkIDSetDatabase:
+            databaseCheck = True
+        for order in checkBasket:
+            checkIDSetApplication.add(order.getOrderID())
+        if orderID not in checkIDSetApplication:
+            applicationCheck = True
+
+        if applicationCheck and databaseCheck:
+            return True
+        else:
+            return False
+
+    def clientBuyProductsInBasket(self, _id):   # zamów (bez płacenia)  #TODO produkt - main będzie miał listę //lub nie
+        successfullyBoughtProducts = []
+        client = self.getLoggedClient(_id)
+        basket = client.getBasket()
 
         cc = ClientController(self.db)
         cc.connect()
 
-        success = cc.register(username, password, name, surname, email, phoneNumber, address)
-        print(success)
+        for order in basket:
+            if cc.buyProduct(order):
+                successfullyBoughtProducts.append(order)
+                client.addOrderShopHist(order)
+                client.removeOrderBasket(order)
 
         cc.disconnect()
 
-        return True if success == 1 else False
+        return successfullyBoughtProducts
 
-    def getLoggedUser(self, _id):
-        return self.loggedUsers.getLoggedUser(_id)
+    def clientShowShopHist(self, _id):
+        client = self.loggedUsers.getLoggedClient(_id)
+        shopHist = client.getShopHist()
+        return shopHist
 
-    def showProducts(self, _id):
-        user = self.getLoggedUser(_id)
-        userController = user.getController()
-        productList = userController.showProducts()
-        return productList
+    def searchProductUsingName(self, productName):
+        uc = UserController(self.db)
+        uc.connect()
+        productListFromDatabase = uc.searchProductUsingName(productName)
+        uc.disconnect()
 
-if __name__ == '__main__':
-    pass
-    # print(cc.searchProductUsingName('i'))
-    # success, _id = cc.login("pawcio", "123")
-    # print(success, _id)
-    # db.connect()
-    # db.login('papaj', 'dupa')
-    # db.addToBasket(6, 33)
-    # db.addNewProduct("xiaomi mi 11", 150.5, 'tel', 14)
-    # db.disconnect()
+        productList = []
+        for productFromDatabase in productListFromDatabase:
+            productID, name, price, category, amount = productFromDatabase
+            product = Product(productID, name, price, category, amount)
+            productList.append(product)
+
+        if len(productList) > 0:
+            return productList
+        else:
+            return None
+
+    def clientLogout(self, _id):
+        self.loggedUsers.removeLoggedClient(_id)
+
+    def employeeLogout(self, _id):
+        self.loggedUsers.removeLoggedEmployee(_id)  # TODO w www wypisac "zostales wylogowany"
+
+    def searchProductUsingID(self, productID):
+        uc = UserController(self.db)
+        uc.connect()
+        productInfo = uc.searchProductUsingID(productID)[0]
+        uc.disconnect()
+        productID, name, price, category, amount = productInfo
+        product = Product(productID, name, price, category, amount)
+        return product
+

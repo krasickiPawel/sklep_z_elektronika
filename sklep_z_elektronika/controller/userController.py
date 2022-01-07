@@ -7,72 +7,86 @@ class UserController(DatabaseController):
         super().__init__(dataBase)
 
     def checkProductAmount(self, productID):
-        return self.callStoredProcedureWithReturn('sprawdz_ilosc_produktu', [productID])
-
-    def getUserData(self, userID):
-        return self.callStoredProcedureWithReturn('zwroc_dane_uzytkownika', [userID])
+        return self.callStoredProcedureWithReturn('sprawdz_ilosc_produktu', [productID])[0][0]
 
     def showProducts(self):
-        return self.show('produkty')
+        return self.showView('produkty')
 
     def searchProductUsingName(self, productName):
         return self.callStoredProcedureWithReturn('wyszukaj_produkt_po_nazwie', [productName])
 
-    def loginUser(self, username, password, userType):
+    def loginUser(self, email, password, loginType):
         success = -1
         userID = 0
-        return self.callLoginProcedure('zaloguj_uzytkownika', [success, userID, username, password, userType])
+        return self.callLoginProcedure(loginType, [success, userID, email, password])
+
+    def searchProductUsingID(self, productID):
+        return self.callStoredProcedureWithReturn('wyszukaj_produkt_po_id', [productID])
 
 
 class ClientController(UserController):
     def __init__(self, dataBase):
         super().__init__(dataBase)
 
-    def showBasket(self, userID):
-        return self.callStoredProcedureWithReturn('pokaz_koszyk', [userID])
+    def getClientData(self, clientID):
+        return self.callStoredProcedureWithReturn('zwroc_dane_klienta', [clientID])[0]
 
-    def addToBasket(self, userID, productID):
-        self.callStoredProcedureWithoutReturn('dodaj_do_koszyka', [userID, productID, datetime.now()])
+    def showFormattedBasket(self, clientID):
+        return self.callStoredProcedureWithReturn('pokaz_koszyk', [clientID])
 
-    def buyProduct(self, orderID):
-        self.callStoredProcedureWithoutReturn('kup_produkt', [orderID])
+    def showBasketOrders(self, clientID):
+        return self.callStoredProcedureWithReturn('zwroc_zamowienia_w_koszyku', [clientID])
 
-    def showShopHist(self, userID):
-        return self.callStoredProcedureWithReturn('pokaz_historie_zamowien_klienta', [userID])
+    def addToBasket(self, clientID, productID):
+        self.callStoredProcedureWithoutReturn('dodaj_do_koszyka', [clientID, productID, datetime.now()])
 
-    def login(self, username, password):
-        return self.loginUser(username, password, "klient")
+    def removeFromBasket(self, orderID):
+        self.callStoredProcedureWithoutReturn('usun_z_koszyka', [orderID])
 
-    def register(self, username, password, name, surname, email, phoneNumber, address):
+    def buyProduct(self, order):
+        productID = order.getProductID()
+        if self.checkProductAmount(productID) > 0:
+            self.callStoredProcedureWithoutReturn('kup_produkt', [order.getOrderID()])
+            return True
+        else:
+            return False
+
+    def showShopHist(self, clientID):
+        return self.callStoredProcedureWithReturn('pokaz_historie_zamowien_klienta', [clientID])
+
+    def login(self, email, password):
+        return self.loginUser(email, password, "zaloguj_klienta")
+
+    def register(self, name, surname, email, phoneNumber, address, password):
         success = -1
-        return self.callRegisterProcedure('zarejestruj_uzytkownika', [success, username, password, name, surname, email,
-                                                                      phoneNumber, address, "klient"])
+        return self.callRegisterProcedure('zarejestruj_klienta', [success, name, surname, email, phoneNumber, address,
+                                                                  password])
 
 
 class EmployeeController(UserController):
     def __init__(self, dataBase):
         super().__init__(dataBase)
 
+    def getEmployeeData(self, employeeID):
+        return self.callStoredProcedureWithReturn('zwroc_dane_pracownika', [employeeID])[0]
+
     def showProductsUnavailable(self):
-        return self.show('produkty_niedostepne')
+        return self.showView('produkty_niedostepne')
 
     def showOrdersCanceled(self):
-        return self.show('zamowienia_anulowane')
+        return self.showView('zamowienia_anulowane')
 
     def showOrdersInRealization(self):
-        return self.show('zamowienia_w_trakcie_realizacji')
+        return self.showView('zamowienia_w_trakcie_realizacji')
 
     def showOrdersCompleted(self):
-        return self.show('zamowienia_zrealizowane')
+        return self.showView('zamowienia_zrealizowane')
 
-    def login(self, username, password):
-        return self.loginUser(username, password, "pracownik")
+    def login(self, email, password):
+        return self.loginUser(email, password, "zaloguj_pracownika")
 
     def searchOrderUsingID(self, orderID):
         return self.callStoredProcedureWithReturn('wyszukaj_zamowienie_po_id', [orderID])
-
-    def searchProductUsingID(self, productID):
-        return self.callStoredProcedureWithReturn('wyszukaj_produkt_po_id', [productID])
 
     def confirmOrder(self, orderID):
         self.callStoredProcedureWithoutReturn('potwierdz_zamowienie', [orderID])

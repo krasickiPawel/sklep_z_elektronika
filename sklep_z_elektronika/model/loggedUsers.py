@@ -1,12 +1,22 @@
 class LoggedUsers:
     def __init__(self):
-        self.loggedUsers = dict()
+        self.loggedClients = dict()
+        self.loggedEmployees = dict()
 
-    def addLoggedUser(self, userID, user):
-        self.loggedUsers[userID] = user
+    def addLoggedClient(self, clientID, client):
+        self.loggedClients[clientID] = client
 
-    def removeLoggedUser(self, userID):
-        self.loggedUsers.pop(userID)
+    def removeLoggedClient(self, clientID):
+        self.loggedClients.pop(clientID)
 
-    def getLoggedUser(self, userID):
-        return self.loggedUsers.get(userID)
+    def getLoggedClient(self, clientID):
+        return self.loggedClients.get(clientID)
+
+    def addLoggedEmployee(self, employeeID, employee):
+        self.loggedEmployees[employeeID] = employee
+
+    def removeLoggedEmployee(self, employeeID):
+        self.loggedEmployees.pop(employeeID)
+
+    def getLoggedEmployee(self, employeeID):
+        return self.loggedEmployees.get(employeeID)

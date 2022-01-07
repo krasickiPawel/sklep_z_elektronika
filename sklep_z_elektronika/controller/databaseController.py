@@ -14,38 +14,38 @@ class DatabaseController:
         self.cursor.close()
         self.dataBase.db.close()
 
-    def show(self, view):
+    def showView(self, view):
         try:
             self.cursor.execute(f'SELECT * FROM {view}')
             resultList = self.cursor.fetchall()
             returnList = []
             for result in resultList:
                 returnList.append(result)
-            return returnList
+            return returnList                           # lista krotek
         except Exception as e:
             print(e)
 
     def callStoredProcedureWithoutReturn(self, name, args):
         try:
             self.cursor.callproc(f'{name}', args)
-            self.dataBase.db.commit()
+            self.dataBase.db.commit()                   # zatwierdzenie zmian
         except mysql.connector.Error as e:
             print(e)
 
     def callStoredProcedureWithReturn(self, name, args):
         try:
             self.cursor.callproc(name, args)
-            resultList = []
+            resultList = None
             for result in self.cursor.stored_results():
                 resultList = result.fetchall()
-            return resultList
+            return resultList                           # lista krotek
         except mysql.connector.Error as e:
             print(e)
 
     def callLoginProcedure(self, name, args):
         try:
             resultArgs = self.cursor.callproc(name, args)
-            return resultArgs[0], resultArgs[1]
+            return resultArgs[0], resultArgs[1]         # success, userID
         except mysql.connector.Error as e:
             print(e)
 
@@ -53,6 +53,6 @@ class DatabaseController:
         try:
             resultArgs = self.cursor.callproc(name, args)
             self.dataBase.db.commit()
-            return resultArgs[0]
+            return resultArgs[0]                        # success
         except mysql.connector.Error as e:
             print(e)
