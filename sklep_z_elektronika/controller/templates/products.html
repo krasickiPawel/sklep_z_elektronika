@@ -14,7 +14,19 @@
 
 
 {% block body %}
-    <p>aaaaaaaaaaaaaaaahahah {{loggedName}}</p>
+<form method="post" action="/login">
+    <table style="width:100%;">
+        {% for i in range(columnListLen)%}
+        <tr>
+            <td>
+                <p></p>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</form>
+
+    <p>aaaaaaaaaaaaaaaahahah {{loggedID}}</p>
 
     {% for product in productList%}
         <p class="produkt"> {{product.toString()}}</p>

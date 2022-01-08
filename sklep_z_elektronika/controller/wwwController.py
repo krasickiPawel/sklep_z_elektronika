@@ -24,7 +24,8 @@ def index():
         if request.method == "POST":
             pass
 
-        return render_template("products.html", productList=mc.showProducts(session.get("loggedClient"), "client"), loggedName=session.get('loggedClient'))
+        return render_template("products.html", productList=mc.showProducts(session.get("loggedClient"), "client"),
+                               loggedID=session.get('loggedClient'))
 
 
 @app.route("/login", methods=['GET', 'POST'])
