@@ -1,9 +1,22 @@
 {% extends "layout.html" %}
 {% block style %}
-
+.licznik {
+    padding: 0px;
+    margin-bottom: 0px;
+    width: 2%;
+    height: 20px;
+    left: 30px;
+    position: static;
+    border: 2px solid red;
+    border-radius: 50%;
+}
 {% endblock %}
 
 
 {% block body %}
-    <p>aaaaaaaaaaaaaaaahahah</p>
+    <p>aaaaaaaaaaaaaaaahahah {{loggedName}}</p>
+
+    {% for product in productList%}
+        <p class="produkt"> {{product.toString()}}</p>
+    {% endfor %}
 {% endblock %}

@@ -218,3 +218,5 @@ class MainController:
         product = Product(productID, name, price, category, amount)
         return product
 
+    def clientCheckIfLogged(self, _id):
+        return self.loggedUsers.checkIfLogged(_id)

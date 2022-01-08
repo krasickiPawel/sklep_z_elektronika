@@ -12,6 +12,9 @@ class LoggedUsers:
     def getLoggedClient(self, clientID):
         return self.loggedClients.get(clientID)
 
+    def checkIfLogged(self, clientID):
+        return clientID in self.loggedClients
+
     def addLoggedEmployee(self, employeeID, employee):
         self.loggedEmployees[employeeID] = employee
 
