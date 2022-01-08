@@ -46,7 +46,7 @@ class MainController:
         success, _id = ec.login(username, password)
 
         if success == 1:
-            name, surname, email, phoneNumber, address, position, salary = ec.getEmployeeData(_id)[0]
+            name, surname, email, phoneNumber, address, position, salary = ec.getEmployeeData(_id)
             employee = Employee(_id, name, surname, email, phoneNumber, address, password, position, salary)
             self.loggedUsers.addLoggedEmployee(_id, employee)
             ec.disconnect()
