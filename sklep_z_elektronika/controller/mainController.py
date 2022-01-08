@@ -4,6 +4,7 @@ from sklep_z_elektronika.model.loggedUsers import LoggedUsers
 from sklep_z_elektronika.controller.userController import ClientController, EmployeeController, UserController
 from sklep_z_elektronika.model.order import Order, HistOrder
 from sklep_z_elektronika.model.product import Product
+from threading import Timer
 
 
 class MainController:
@@ -72,7 +73,7 @@ class MainController:
     def getLoggedEmployee(self, _id):
         return self.loggedUsers.getLoggedEmployee(_id)
 
-    def showProducts(self):
+    def getAllProductsFromDB(self):
         productList = []
         uc = UserController(self.db)
         uc.connect()
@@ -83,10 +84,23 @@ class MainController:
             product = Product(productID, name, price, category, amount)
             productList.append(product)
 
-        if len(productList) > 0:
-            return productList  # TODO sprawdzic czy nie None, sprawdzic czy iloscProduktu nie jest 0 jest tak zaznaczyc
-        else:
-            return None
+        return productList
+
+    def prepareProductsToShow(self, _id, userType, productList):
+        if userType == "client":
+            client = self.getLoggedClient(_id)
+            client.setCurrentlyViewedProducts(productList)
+        elif userType == "employee":
+            employee = self.getLoggedEmployee(_id)
+            employee.setCurrentlyViewedProducts(productList)
+
+    def showProducts(self, _id, userType):
+        if userType == "client":
+            client = self.getLoggedClient(_id)
+            return client.getCurrentlyViewedProducts()
+        elif userType == "employee":
+            employee = self.getLoggedEmployee(_id)
+            return employee.getCurrentlyViewedProducts()
 
     def clientShowBasketOrders(self, _id):
         client = self.loggedUsers.getLoggedClient(_id)
@@ -220,3 +234,15 @@ class MainController:
 
     def clientCheckIfLogged(self, _id):
         return self.loggedUsers.checkIfLogged(_id)
+
+    def cleanMemory(self, _id, time, userType):
+        if userType == "client":
+            t = Timer(time, self.loggedUsers.removeLoggedClient, args=[_id])
+            client = self.getLoggedClient(_id)
+            client.setTimer(t)
+            client.startTimer()
+        elif userType == "employee":
+            t = Timer(time, self.loggedUsers.removeLoggedEmployee, args=[_id])
+            employee = self.getLoggedEmployee(_id)
+            employee.setTimer(t)
+            employee.startTimer()

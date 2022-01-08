@@ -7,6 +7,8 @@ class User:
         self.phoneNumber = phoneNumber
         self.address = address
         self.password = password
+        self.timer = None
+        self.currentlyViewedProducts = None     # indywidualna lista wyświetlanych produktów
 
     def getID(self):
         return self.id
@@ -26,12 +28,24 @@ class User:
     def getAddress(self):
         return self.address
 
+    def setTimer(self, timer):
+        self.timer = timer
+
+    def startTimer(self):
+        self.timer.start()
+
+    def setCurrentlyViewedProducts(self, productList):
+        self.currentlyViewedProducts = productList
+
+    def getCurrentlyViewedProducts(self):
+        return self.currentlyViewedProducts
+
 
 class Client(User):
     def __init__(self, userID, name, surname, email, phoneNumber, address, password):
         super().__init__(userID, name, surname, email, phoneNumber, address, password)
-        self.shopHist = []  # reszta orders klienta
-        self.basket = []    # orders "w koszyku"
+        self.shopHist = []                      # reszta orders klienta
+        self.basket = []                        # orders "w koszyku"
 
     def addOrderShopHist(self, order):
         self.shopHist.append(order)

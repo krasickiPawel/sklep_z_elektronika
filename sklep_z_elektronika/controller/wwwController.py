@@ -2,11 +2,13 @@ from sklep_z_elektronika.controller.mainController import MainController
 from flask import Flask, flash, render_template, request, redirect, url_for, session
 from datetime import timedelta
 
+
 mc = MainController()
+sessionTimeInSeconds = 900
+
 app = Flask(__name__)                                                   # serwer Flask ktory zaimportowalem wyzej
 app.secret_key = "p&n"
-app.permanent_session_lifetime = timedelta(minutes=15)
-currentProducts = dict()
+app.permanent_session_lifetime = timedelta(seconds=sessionTimeInSeconds)
 
 
 def runApp():                                                           # wlacznik serwera pythonowego ktory umozliwia wyswietlanie stron w przegladarce
@@ -22,7 +24,7 @@ def index():
         if request.method == "POST":
             pass
 
-        return render_template("products.html", productList=mc.showProducts(), loggedName=session.get('loggedClient'))
+        return render_template("products.html", productList=mc.showProducts(session.get("loggedClient"), "client"), loggedName=session.get('loggedClient'))
 
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -34,8 +36,8 @@ def login():                                                            # ekran 
             if clientID is not None:
                 print("Gitara siema!")
                 session["loggedClient"] = clientID
-                currentProducts["products"] = mc.showProducts()
-                print(currentProducts.get("products"))
+                mc.prepareProductsToShow(session.get("loggedClient"), "client", mc.getAllProductsFromDB())
+                mc.cleanMemory(session.get("loggedClient"), sessionTimeInSeconds, "client")
                 return redirect(url_for("index"))
             else:
                 print("Nie udało się zalogować!")
@@ -53,7 +55,7 @@ def logout():
     else:
         mc.clientLogout(session.get("loggedClient"))
         session.pop("loggedClient")
-        flash("Zostałeś poprawnie wylogowany")
+        flash("Zostałeś wylogowany")
         return redirect(url_for("login"))
 
 
@@ -67,8 +69,9 @@ def search():
         phrase = request.form.get("search-input")
         products = mc.searchProductUsingName(phrase)
         if products is not None:
-            currentProducts["products"] = products
+            mc.prepareProductsToShow(session.get("loggedClient"), "client", products)
         else:
+            mc.prepareProductsToShow(session.get("loggedClient"), "client", mc.getAllProductsFromDB())
             flash("Nie znaleziono produktu o szukanej frazie")
         return redirect(url_for("index"))
 
@@ -79,6 +82,15 @@ def register():
         pass
 
     return render_template("register.html")
+
+
+@app.route("/shop", methods=['GET'])
+def shop():
+    if "loggedClient" not in session or not mc.clientCheckIfLogged(session.get("loggedClient")):
+        return redirect(url_for("login"))
+    else:
+        mc.prepareProductsToShow(session.get("loggedClient"), "client", mc.getAllProductsFromDB())
+        return redirect(url_for("index"))
 
 
 @app.route("/history", methods=['GET', 'POST'])
