@@ -3,7 +3,6 @@
 {% block style %}
 .order-table {
     width: 100%;
-    border: 1px solid black;
 }
 .order-data-category {
     text-transform: capitalize;
@@ -14,7 +13,7 @@
     text-transform: capitalize;
 }
 .order-data {
-    width: 25%
+    width: 25%;
 }
 .row {
     margin: 15px;
@@ -39,6 +38,13 @@
 .row:hover {
     background-color: AliceBlue;
 }
+.th {
+
+    width: 25%;
+}
+th:hover {
+    color: grey;
+}
 {% endblock %}
 
 
@@ -52,16 +58,22 @@
 {% else %}
 <form method="post" action="/basket">
     <table class="order-table">  <!-- style="width:100%;" -->
+        <tr class="row">
+            <th class="th">Kategoria</th>
+            <th class="th">Produkt</th>
+            <th class="th">Cena</th>
+            <th class="th">Akcja</th>
+        </tr>
         {% for order in orderList%}
         <tr class="row">
             <td class="order-data">
-                <strong class="order-data order-data-category">{{order[2]}}</strong>
+                <strong class="order-data-category">{{order[2]}}</strong>
             </td>
             <td class="order-data">
-                <h6 class="order-data order-data-name">{{order[1]}}</h6>
+                <h6 class="order-data-name">{{order[1]}}</h6>
             </td>
             <td class="order-data">
-                <h6 class="order-data order-data-price">{{order[3]}} zł</h6>
+                <h6 class="order-data-price">{{order[3]}} zł</h6>
             </td>
             <td class="order-data">
                 <button type="submit" class="btn btn-remove-from-basket" name="remove.{{order[4]}}">Usuń z koszyka</button>

@@ -13,10 +13,25 @@
 .tr:hover {
     background-color: AliceBlue;
 }
+.none-info {
+    color: #220022
+    position: absolute;
+    margin: auto;
+    text-align: center;
+    font-size: large;
+}
 {% endblock %}
 
 
 {% block body %}
+{% if shopHistEmpty %}
+<br>
+<br>
+<br>
+<br>
+<div class="none-info">Nie masz jeszcze żadnych zamówień</div>
+{% else %}
+
 <table class="order-history-table">  <!-- style="width:100%;" -->
     {% for order in shopHist%}
     <tr class="tr">
@@ -29,5 +44,6 @@
     {% endfor %}
 
 </table>
+{% endif %}
 
 {% endblock %}

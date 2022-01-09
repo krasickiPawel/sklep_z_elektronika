@@ -121,7 +121,12 @@ def history():
             pass
 
         shopHist = mc.clientShowShopHist(session.get("loggedClient"))
-        return render_template("history.html", shopHist=shopHist)
+        if len(shopHist) > 0:
+            shopHistEmpty = False
+        else:
+            shopHistEmpty = True
+
+        return render_template("history.html", shopHist=shopHist, shopHistEmpty=shopHistEmpty)
 
 
 @app.route("/basket", methods=['GET', 'POST'])
@@ -140,7 +145,7 @@ def basket():
                         flash("Gratulujemy wyboru! Zamówione produkty czekają na opłacenie i weryfikację przez pracownika.")
                     else:
                         flash("Wystąpiły problemy podczas składania zamówienia na produkty znajdujące się w twoim "
-                              "koszyku.")
+                              "koszyku. Możliwe, że niektóre produkty są już niedostępne.")
 
         basketList, totalPrice = mc.clientShowFormattedBasket(session.get("loggedClient"))
 

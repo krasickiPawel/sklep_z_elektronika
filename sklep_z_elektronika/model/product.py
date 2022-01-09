@@ -19,7 +19,10 @@ class Product:
         return self.category
 
     def getAmount(self):
-        return self.amount
+        if self.amount > 0:
+            return f"{self.amount} dostępnych sztuk"
+        else:
+            return 'Produkt niedostępny'
 
     def toString(self):
         return f"{self.productID}, {self.name}, {self.price}, {self.category}, {self.amount}"
