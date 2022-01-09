@@ -10,7 +10,7 @@ import time
 
 class MainController:
     def __init__(self):
-        self.db = Database('localhost', 'root', 'mysql123', 'test_elektronika')
+        self.db = Database('25.93.80.192', 'root', 'mysql123', 'test_elektronika')
         self.loggedUsers = LoggedUsers()
 
     def clientLogin(self, email, password):     # TODO jeśli coś jest w basket to rzucić jakąś przypominajkę z alertu
