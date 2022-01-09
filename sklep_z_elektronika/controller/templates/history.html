@@ -1,10 +1,33 @@
 {% extends "layout.html" %}
 
 {% block style %}
-
+. {
+    width: 100%;
+    position: absolute;
+    margin: auto;
+    text-align: center;
+}
+.order-history-table {
+    margin-left: 5px;
+}
+.tr:hover {
+    background-color: AliceBlue;
+}
 {% endblock %}
 
 
 {% block body %}
+<table class="order-history-table">  <!-- style="width:100%;" -->
+    {% for order in shopHist%}
+    <tr class="tr">
+        <td class="td">
+            <strong class="order-data-text">
+                {{order.toString()}}
+            </strong>
+        </td>
+    </tr>
+    {% endfor %}
+
+</table>
 
 {% endblock %}

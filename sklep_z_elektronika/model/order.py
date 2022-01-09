@@ -36,3 +36,9 @@ class HistOrder:
 
     def getOrderStatus(self):
         return self.status
+
+    def getProductCategory(self):
+        return self.productCategory
+
+    def toString(self):
+        return f"{self.orderID}, {self.productCategory}, {self.productName}, {self.productPrice}, {self.date}, {self.status}"

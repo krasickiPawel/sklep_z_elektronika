@@ -7,7 +7,11 @@ class UserController(DatabaseController):
         super().__init__(dataBase)
 
     def checkProductAmount(self, productID):
-        return self.callStoredProcedureWithReturn('sprawdz_ilosc_produktu', [productID])[0][0]
+        returnList = self.callStoredProcedureWithReturn('sprawdz_ilosc_produktu', [productID])
+        if returnList is not None:
+            return returnList[0][0]
+        else:
+            return None
 
     def showProducts(self):
         return self.showView('produkty')
@@ -45,7 +49,8 @@ class ClientController(UserController):
 
     def buyProduct(self, order):
         productID = order.getProductID()
-        if self.checkProductAmount(productID) > 0:
+        productAmount = self.checkProductAmount(productID)
+        if productAmount is not None and productAmount > 0:
             self.callStoredProcedureWithoutReturn('kup_produkt', [order.getOrderID()])
             return True
         else:
@@ -61,6 +66,10 @@ class ClientController(UserController):
         success = -1
         return self.callRegisterProcedure('zarejestruj_klienta', [success, name, surname, email, phoneNumber, address,
                                                                   password])
+
+    def getBasketTotalPrice(self, clientID):
+        totalPrice = 0
+        return self.callRegisterProcedure('cena_koszyka', [totalPrice, clientID])
 
 
 class EmployeeController(UserController):

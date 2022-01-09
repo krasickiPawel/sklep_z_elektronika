@@ -5,6 +5,7 @@ from sklep_z_elektronika.controller.userController import ClientController, Empl
 from sklep_z_elektronika.model.order import Order, HistOrder
 from sklep_z_elektronika.model.product import Product
 from threading import Timer
+import time
 
 
 class MainController:
@@ -111,9 +112,10 @@ class MainController:
         cc = ClientController(self.db)
         cc.connect()
         basketFromDB = cc.showFormattedBasket(_id)
+        totalPrice = cc.getBasketTotalPrice(_id)
         cc.disconnect()
 
-        return basketFromDB
+        return [basketFromDB, totalPrice]
 
     def clientAddToBasket(self, _id, productID):    # dodanie do koszyka nie rezerwuje produktu (nie zmniejsza jego ilosci w bazie) - dopiero "zamów" to robi
         cc = ClientController(self.db)
@@ -138,20 +140,21 @@ class MainController:
             orderToAddToClientBasket = Order(orderID, clientID, productID, date, status)
             client = self.loggedUsers.getLoggedClient(_id)
             client.addOrderBasket(orderToAddToClientBasket)
-            return True
+            return self.searchProductUsingID(productID).getName()
         else:
-            return False
+            return None
 
     def clientRemoveFromBasket(self, _id, orderID):
         cc = ClientController(self.db)
         cc.connect()
         cc.removeFromBasket(orderID)
+
         client = self.getLoggedClient(_id)
+        clientBasket = self.clientShowBasketOrders(_id)
         orderToBeRemoved = None
-        basket = client.getBasket()
-        for existingOrder in basket:
-            if existingOrder.getOrderID() == orderID:
-                orderToBeRemoved = existingOrder
+        for order in clientBasket:
+            if int(order.getOrderID()) == int(orderID):
+                orderToBeRemoved = order
         client.removeOrderBasket(orderToBeRemoved)
 
         databaseCheck = False
@@ -178,22 +181,77 @@ class MainController:
             return False
 
     def clientBuyProductsInBasket(self, _id):   # zamów (bez płacenia)  #TODO produkt - main będzie miał listę //lub nie
+        """
+
+        cc = ClientController(self.db)
+        cc.connect()
+        cc.addToBasket(_id, productID)
+
+        clientBasket = self.clientShowBasketOrders(_id)
+        basketSet = set()
+        for clientBasketOrder in clientBasket:
+            basketSet.add(clientBasketOrder.getOrderID())
+
+        newOrder = None
+        basketList = cc.showBasketOrders(_id)
+        cc.disconnect()
+
+        for basketOrder in basketList:
+            if basketOrder[0] not in basketSet:
+                newOrder = basketOrder
+
+        if newOrder is not None:
+            orderID, clientID, productID, date, status = newOrder
+            orderToAddToClientBasket = Order(orderID, clientID, productID, date, status)
+            client = self.loggedUsers.getLoggedClient(_id)
+            client.addOrderBasket(orderToAddToClientBasket)
+            return True
+        else:
+            return False
+
+        :param _id:
+        :return:
+        """
+
         successfullyBoughtProducts = []
         client = self.getLoggedClient(_id)
-        basket = client.getBasket()
+        basketRAM = client.getBasket()
 
         cc = ClientController(self.db)
         cc.connect()
 
+        basket = cc.showFormattedBasket(_id)
+        basketLen = len(basket)
+
+        ordersToRemoveFromRAM = []
         for order in basket:
-            if cc.buyProduct(order):
-                successfullyBoughtProducts.append(order)
-                client.addOrderShopHist(order)
-                client.removeOrderBasket(order)
+            productID, productName, productCategory, productPrice, orderID, clientID, date, status = order
+            oRD = Order(orderID, clientID, productID, date, status)
+            histOrder = HistOrder(orderID, productName, productCategory, productPrice, date, status)
+            success = cc.buyProduct(oRD)
+            time.sleep(0.05)
+            print(success, oRD.getOrderID())
+            if success:
+                successfullyBoughtProducts.append(oRD)
+                client.addOrderShopHist(oRD)
+                ordersToRemoveFromRAM.append(oRD)
+                client.addOrderShopHist(histOrder)
+                # client.removeOrderBasket(oRD)
 
         cc.disconnect()
+        juzNieMamSil = []
+        for oRD in ordersToRemoveFromRAM:
+            for i in range(len(basketRAM)):
+                if oRD.getOrderID() == basketRAM[i].getOrderID():
+                    juzNieMamSil.append(basketRAM[i])
 
-        return successfullyBoughtProducts
+        for officialOrder in juzNieMamSil:
+            client.removeOrderBasket(officialOrder)
+
+        if len(successfullyBoughtProducts) == basketLen:
+            return True
+        else:
+            return False                # coś się nie powiodło
 
     def clientShowShopHist(self, _id):
         client = self.loggedUsers.getLoggedClient(_id)

@@ -22,10 +22,28 @@ def index():
         return redirect(url_for("login"))
     else:
         if request.method == "POST":
-            pass
+            for key in request.form:
+                if key.startswith("buy."):
+                    productID = key.partition('.')[-1]
+                    productName = mc.clientAddToBasket(session.get("loggedClient"), productID)
+                    if productName is not None:
+                        flash(f"Dodano {productName} do koszyka.")                    # dodawanie do koszyka
+                    else:
+                        flash("Nie udało się dodać produktu do koszyka.")
+        productList = mc.showProducts(session.get("loggedClient"), "client")
+        productListLen = len(productList)
+        parsedProductList = []
+        rowList = []
+        for i in range(productListLen):
+            if i % 3 == 2:
+                rowList.append(productList[i])
+                parsedProductList.append(rowList.copy())
+                rowList.clear()
+            else:
+                rowList.append(productList[i])
+        parsedProductList.append(rowList.copy())
 
-        return render_template("products.html", productList=mc.showProducts(session.get("loggedClient"), "client"),
-                               loggedID=session.get('loggedClient'))
+        return render_template("products.html", productList=parsedProductList, loggedID=session.get('loggedClient'))
 
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -102,7 +120,8 @@ def history():
         if request.method == "POST":
             pass
 
-        return render_template("history.html")
+        shopHist = mc.clientShowShopHist(session.get("loggedClient"))
+        return render_template("history.html", shopHist=shopHist)
 
 
 @app.route("/basket", methods=['GET', 'POST'])
@@ -111,9 +130,26 @@ def basket():
         return redirect(url_for("login"))
     else:
         if request.method == "POST":
-            pass
+            for key in request.form:
+                if key.startswith("remove."):
+                    orderID = key.partition('.')[-1]
+                    if not mc.clientRemoveFromBasket(session.get("loggedClient"), orderID):
+                        flash("Usuwanie produktu z koszyka nie powiodło się!")
+                if key.startswith("buyAll"):
+                    if mc.clientBuyProductsInBasket(session.get("loggedClient")):
+                        flash("Gratulujemy wyboru! Zamówione produkty czekają na opłacenie i weryfikację przez pracownika.")
+                    else:
+                        flash("Wystąpiły problemy podczas składania zamówienia na produkty znajdujące się w twoim "
+                              "koszyku.")
 
-        return render_template("basket.html")
+        basketList, totalPrice = mc.clientShowFormattedBasket(session.get("loggedClient"))
+
+        if len(basketList) == 0:
+            basketEmpty = True
+        else:
+            basketEmpty = False
+
+        return render_template("basket.html", orderList=basketList, totalPrice=totalPrice, basketEmpty=basketEmpty)
 
 
 @app.route("/emp", methods=['GET', 'POST'])                             # widok glowny pracownika
