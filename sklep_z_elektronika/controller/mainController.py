@@ -2,15 +2,15 @@ from sklep_z_elektronika.model.database import Database
 from sklep_z_elektronika.model.user import Client, Employee
 from sklep_z_elektronika.model.loggedUsers import LoggedUsers
 from sklep_z_elektronika.controller.userController import ClientController, EmployeeController, UserController
-from sklep_z_elektronika.model.order import Order, HistOrder
+from sklep_z_elektronika.model.order import Order, HistOrder, EmployeeViewOrder
 from sklep_z_elektronika.model.product import Product
 from threading import Timer
 import time
 
 
 class MainController:
-    def __init__(self):
-        self.db = Database('25.93.80.192', 'root', 'mysql123', 'test_elektronika')
+    def __init__(self, host, user, password, database):
+        self.db = Database(host, user, password, database)
         self.loggedUsers = LoggedUsers()
 
     def clientLogin(self, email, password):     # TODO jeśli coś jest w basket to rzucić jakąś przypominajkę z alertu
@@ -32,6 +32,7 @@ class MainController:
                 orderID, productName, productCategory, productPrice, date, status = shopHistOrder
                 histOrder = HistOrder(orderID, productName, productCategory, productPrice, date, status)
                 client.addOrderShopHist(histOrder)
+            print("no jestem tu")
             self.loggedUsers.addLoggedClient(_id, client)
             cc.disconnect()
             return _id      # TODO w www wyswietlic pozniej produkty
@@ -140,7 +141,7 @@ class MainController:
             orderToAddToClientBasket = Order(orderID, clientID, productID, date, status)
             client = self.loggedUsers.getLoggedClient(_id)
             client.addOrderBasket(orderToAddToClientBasket)
-            return self.searchProductUsingID(productID).getName()
+            return self.searchProductUsingID(productID)[0].getName()
         else:
             return None
 
@@ -180,7 +181,7 @@ class MainController:
         else:
             return False
 
-    def clientBuyProductsInBasket(self, _id):   # zamów (bez płacenia)  #TODO produkt - main będzie miał listę //lub nie
+    def clientBuyProductsInBasket(self, _id):   # zamów (bez płacenia)  #sory za ten syf xD
         """
 
         cc = ClientController(self.db)
@@ -227,16 +228,24 @@ class MainController:
         for order in basket:
             productID, productName, productCategory, productPrice, orderID, clientID, date, status = order
             oRD = Order(orderID, clientID, productID, date, status)
-            histOrder = HistOrder(orderID, productName, productCategory, productPrice, date, status)
+
             success = cc.buyProduct(oRD)
+
             time.sleep(0.05)
             print(success, oRD.getOrderID())
             if success:
                 successfullyBoughtProducts.append(oRD)
-                client.addOrderShopHist(oRD)
                 ordersToRemoveFromRAM.append(oRD)
-                client.addOrderShopHist(histOrder)
                 # client.removeOrderBasket(oRD)
+
+        # ratowanie shopHist w RAM, ale i tak sie z tego wycofalem i przeszedłem na pobieranie bezpośrednio z bazy
+        basket = cc.showFormattedBasket(_id)
+        for order in basket:
+            productID, productName, productCategory, productPrice, orderID, clientID, date, status = order
+            histOrder = HistOrder(orderID, productName, productCategory, productPrice, date, status)
+            if status != "w koszyku":               # xD
+                client.addOrderShopHist(histOrder)  # to nie ma prawa dzialac -> naprawione w clientShowShopHist(_id)
+        # ########################################################
 
         cc.disconnect()
         juzNieMamSil = []
@@ -254,8 +263,21 @@ class MainController:
             return False                # coś się nie powiodło
 
     def clientShowShopHist(self, _id):
-        client = self.loggedUsers.getLoggedClient(_id)
-        shopHist = client.getShopHist()
+        cc = ClientController(self.db)
+        cc.connect()
+
+        shopHistTupleList = cc.showShopHist(_id)
+        shopHist = []
+
+        for shopHistOrder in shopHistTupleList:
+            orderID, productName, productCategory, productPrice, date, status = shopHistOrder
+            histOrder = HistOrder(orderID, productName, productCategory, productPrice, date, status)
+            shopHist.append(histOrder)
+
+        cc.disconnect()
+
+        # client = self.loggedUsers.getLoggedClient(_id)
+        # shopHist = client.getShopHist()
         return shopHist
 
     def searchProductUsingName(self, productName):
@@ -276,22 +298,29 @@ class MainController:
             return None
 
     def clientLogout(self, _id):
+        client = self.getLoggedClient(_id)
+        client.stopTimer()
         self.loggedUsers.removeLoggedClient(_id)
 
     def employeeLogout(self, _id):
+        employee = self.getLoggedEmployee(_id)
+        employee.stopTimer()
         self.loggedUsers.removeLoggedEmployee(_id)  # TODO w www wypisac "zostales wylogowany"
 
-    def searchProductUsingID(self, productID):
+    def searchProductUsingID(self, productID):      # TODO wrzucać do view pracownika jak w searchByName
         uc = UserController(self.db)
         uc.connect()
         productInfo = uc.searchProductUsingID(productID)[0]
         uc.disconnect()
         productID, name, price, category, amount = productInfo
         product = Product(productID, name, price, category, amount)
-        return product
+        return [product]
 
     def clientCheckIfLogged(self, _id):
         return self.loggedUsers.checkIfLogged(_id)
+
+    def employeeCheckIfLogged(self, _id):
+        return self.loggedUsers.checkIfEmpLogged(_id)
 
     def cleanMemory(self, _id, time, userType):
         if userType == "client":
@@ -304,3 +333,70 @@ class MainController:
             employee = self.getLoggedEmployee(_id)
             employee.setTimer(t)
             employee.startTimer()
+
+    def employeeShowProductsUnavailable(self):
+        productList = []
+        ec = EmployeeController(self.db)
+        ec.connect()                                                # dotąd powtarzalne
+
+        productListFromDB = ec.showProductsUnavailable()
+
+        ec.disconnect()                                             # odtąd powtarzalne
+        for productFromDB in productListFromDB:
+            productID, name, price, category, amount = productFromDB
+            product = Product(productID, name, price, category, amount)
+            productList.append(product)
+
+        return productList                                          # trzeba skorzystac z prepareProductsToShow
+
+    def employeeShowViewOrder(self, view):
+        orderList = []
+        ec = EmployeeController(self.db)
+        ec.connect()                                                # dotąd powtarzalne
+
+        orderListFromDB = []
+        if view == "completed":
+            orderListFromDB = ec.showOrdersCompleted()
+        elif view == "canceled":
+            orderListFromDB = ec.showOrdersCanceled()
+        else:
+            orderListFromDB = ec.showOrdersInRealization()
+
+        ec.disconnect()                                             # odtąd powtarzalne
+
+        for orderFromDB in orderListFromDB:
+            orderID, clientID, productID, clientName, clientSurname, clientEmail, clientPhone, clientAddress, productName, productCategory, productPrice, orderDate, orderStatus = orderFromDB
+
+            order = EmployeeViewOrder(orderID, clientID, productID, clientName, clientSurname, clientEmail, clientPhone, clientAddress, productName, productCategory, productPrice, orderDate, orderStatus)     # dla indywidualnego pracownika przypisac widok
+            orderList.append(order)
+
+        return orderList
+
+    def employeeShowViewOrderInProgress(self):
+        return self.employeeShowViewOrder("inProgress")
+
+    def employeeShowViewOrderCanceled(self):
+        return self.employeeShowViewOrder("canceled")
+
+    def employeeShowViewOrderCompleted(self):
+        return self.employeeShowViewOrder("completed")
+
+    def employeePrepareEmployeeViewOrder(self, employeeID, orderList):
+        employee = self.getLoggedEmployee(employeeID)
+        employee.setCurrentlyViewedOrders(orderList)            # trzeba z tego skorzystac i dodac jako argument 1 z 3 funkcji powyzej
+
+    def employeeShowPreparedViewOrder(self, employeeID):
+        employee = self.getLoggedEmployee(employeeID)
+        return employee.getCurrentlyViewedOrders()
+
+    def employeeCancelOrder(self, orderID):
+        ec = EmployeeController(self.db)
+        ec.connect()
+        ec.cancelOrder(orderID)
+        ec.disconnect()
+
+    def employeeConfirmOrder(self, orderID):
+        ec = EmployeeController(self.db)
+        ec.connect()
+        ec.confirmOrder(orderID)
+        ec.disconnect()

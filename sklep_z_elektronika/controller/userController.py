@@ -1,5 +1,4 @@
 from sklep_z_elektronika.controller.databaseController import DatabaseController
-from datetime import datetime
 
 
 class UserController(DatabaseController):
@@ -42,7 +41,7 @@ class ClientController(UserController):
         return self.callStoredProcedureWithReturn('zwroc_zamowienia_w_koszyku', [clientID])
 
     def addToBasket(self, clientID, productID):
-        self.callStoredProcedureWithoutReturn('dodaj_do_koszyka', [clientID, productID, datetime.now()])
+        self.callStoredProcedureWithoutReturn('dodaj_do_koszyka', [clientID, productID])
 
     def removeFromBasket(self, orderID):
         self.callStoredProcedureWithoutReturn('usun_z_koszyka', [orderID])

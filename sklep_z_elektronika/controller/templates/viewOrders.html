@@ -1,0 +1,151 @@
+{% extends "layoutEmp.html" %}
+
+{% block style %}
+.view-orders-table {
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+}
+.tr-td:hover {
+    background-color: AliceBlue;
+}
+.none-info {
+    color: #220022
+    position: absolute;
+    margin: auto;
+    text-align: center;
+    font-size: large;
+}
+.td, .th {
+    padding: 5px;
+}
+.td-buttons {
+    text-align: center;
+}
+.tr-th {
+    background-color: LightYellow;
+}
+.btn {
+    font-weight: bold;
+    width: 100%;
+}
+.btn-cancel {
+    border: 1px solid red;
+}
+.btn-confirm {
+    border: 1px solid green;
+}
+.btn-cancel:hover {
+    color: white;
+    background-color: red;
+}
+.btn-confirm:hover {
+    color: white;
+    background-color: green;
+}
+{% endblock %}
+
+
+
+<!-- if inProgress -->
+{% block body %}
+<!-- orderID, clientID, productID, clientName, clientSurname, clientEmail, clientPhone, clientAddress, productName, productCategory, productPrice, orderDate, orderStatus -->
+
+{% if ordersEmpty %}
+<br>
+<br>
+<br>
+<br>
+<div class="none-info">Nie masz jeszcze żadnych złożonych zamówień</div>
+{% else %}
+
+<table class="view-orders-table">  <!-- style="width:100%;" -->
+    <tr class="tr tr-th">
+        <th class="th">ID zamówienia</th>
+        <th class="th">ID klienta</th>
+        <th class="th">ID produktu</th>
+        <th class="th">Imię i nazwisko klienta</th>
+        <th class="th">Email</th>
+        <th class="th">Telefon</th>
+        <th class="th">Adres</th>
+        <th class="th">Kategoria produktu</th>
+        <th class="th">Produkt</th>
+        <th class="th">Cena</th>
+        <th class="th">Data ustawienia statusu</th>
+        <th class="th">Status zamówienia</th>
+        {% if inProgress %}
+        <th class="th">Akcja</th>
+        {% endif %}
+    </tr>
+    {% for order in orderList%}
+    <tr class="tr tr-td">
+        <td class="td">
+            <strong class="order-data-text">{{order.getOrderID()}}</strong>
+        </td>
+        <td class="td">
+            <div class="order-data-text">{{order.getClientID()}}</div>
+        </td>
+        <td class="td">
+            <div class="order-data-text">{{order.getProductID()}}</div>
+        </td>
+        <td class="td">
+            <div class="order-data-text">{{order.getClientName()}}</div>
+            <div class="order-data-text">{{order.getClientSurname()}}</div>
+        </td>
+        <td class="td">
+            <div class="order-data-text">{{order.getClientEmail()}}</div>
+        </td>
+        <td class="td">
+            <div class="order-data-text">{{order.getClientPhone()}}</div>
+        </td>
+        <td class="td">
+            <div class="order-data-text">{{order.getClientAddress()}}</div>
+        </td>
+        <td class="td">
+            <div class="order-data-text">{{order.getProductCategory()}}</div>
+        </td>
+        <td class="td">
+            <div class="order-data-text">{{order.getProductName()}}</div>
+        </td>
+        <td class="td">
+            <div class="order-data-text">{{order.getProductPrice()}} zł</div>
+        </td>
+        <td class="td">
+            <div class="order-data-text">{{order.getOrderDate()}}</div>
+        </td>
+        <td class="td">
+            <div class="order-data-text">{{order.getOrderStatus()}}</div>
+        </td>
+        {% if order.getOrderStatus() != "Anulowano" and  order.getOrderStatus() != "Zrealizowano" %}
+        <td class="td td-buttons">
+            <form method="post" action="/ordersInProgressEmp">
+                <button type="submit" class="btn btn-cancel" name="cancel.{{order.getOrderID()}}">Odrzuć</button>
+                <button type="submit" class="btn btn-confirm" name="confirm.{{order.getOrderID()}}">Zrealizowano</button>
+            </form>
+        </td>
+        {% endif %}
+    </tr>
+    {% endfor %}
+</table>
+
+{% endif %}
+    <!--
+    {% for order in shopHist%}
+    <tr class="tr">
+        <td class="td">
+            <strong class="order-data-text">
+                {{order.toString()}}
+            </strong>
+        </td>
+    </tr>
+    {% endfor %}
+    -->
+
+
+
+{% endblock %}
+
+
+
+
+

@@ -1,12 +1,18 @@
-{% extends "layout.html" %}
+{% extends "layoutEmp.html" %}
 {% block style %}
 
-.btn-add-to-basket {
-    border: 2px solid green;
+.btn-remove {
+    border: 2px solid red;
 }
-.btn-add-to-basket:hover {
-    background-color: green;
+.btn-remove:hover {
+    background-color: red;
     color: white;
+}
+.btn-edit {
+    border: 2px solid yellow;
+}
+.btn-edit:hover {
+    background-color: yellow;
 }
 .product-table {
     width: 95%;
@@ -50,15 +56,17 @@
         {% for product in rowList%}
         <td class="product-data" style="background-color: {{product.isAvailable()}};">
             <div class="td-div">
+            <p>id: {{product.getProductID()}}</p>
             <strong class="product-data-strong">{{product.getCategory()}}</strong>
             <p class="product-data-p">{{product.getName()}}</p>
             <p>{{product.getPrice()}} zł</p>
             <p>{{product.getAmount()}}</p>
-            {% if product.isAvailable() == "white" %}
-            <form method="post" action="/">
-            <button type="submit" class="btn btn-add-to-basket" name="buy.{{product.getProductID()}}">Dodaj do koszyka</button>
-            </form>
+            <form method="post" action="/emp">
+            {% if modify %}
+            <button type="submit" class="btn btn-remove" name="remove.{{product.getProductID()}}">Usuń</button>
             {% endif %}
+            <button type="submit" class="btn btn-edit" name="edit.{{product.getProductID()}}">Edytuj</button>
+            </form>
             </div>
         </td>
         {% endfor %}

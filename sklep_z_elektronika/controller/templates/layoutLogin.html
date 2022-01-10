@@ -57,6 +57,7 @@
     {% endblock %}
 </head>
 <body>
+<div class="container-fluid">
 {% with messages = get_flashed_messages() %}
   {% if messages %}
     <!-- <ul class=flashes> -->
@@ -76,7 +77,7 @@
 {% block body %}
 
 {% endblock %}
-
+</div>
 <script>
 var close = document.getElementsByClassName("closebtn");
 var i;

@@ -3,17 +3,24 @@ from flask import Flask, flash, render_template, request, redirect, url_for, ses
 from datetime import timedelta
 
 
-mc = MainController()
-sessionTimeInSeconds = 900
-
+mc = MainController("host", "user", "password", "database")
+sessionTimeInSeconds = None
 app = Flask(__name__)                                                   # serwer Flask ktory zaimportowalem wyzej
-app.secret_key = "p&n"
-app.permanent_session_lifetime = timedelta(seconds=sessionTimeInSeconds)
 
 
-def runApp():                                                           # wlacznik serwera pythonowego ktory umozliwia wyswietlanie stron w przegladarce
-    app.run(debug=True)
-    # app.run(host="0.0.0.0")
+def runApp(host, user, password, database, givenSessionTime, secretKey, public=False):       # wlacznik serwera pythonowego ktory umozliwia wyswietlanie stron w przegladarce
+    global mc
+    global sessionTimeInSeconds
+
+    mc = MainController(host, user, password, database)
+    sessionTimeInSeconds = givenSessionTime
+    app.permanent_session_lifetime = timedelta(seconds=sessionTimeInSeconds)
+    app.secret_key = secretKey
+
+    if public:
+        app.run(host="0.0.0.0")
+    else:
+        app.run(debug=True)
 
 
 @app.route("/", methods=['GET', 'POST'])                                # strona glowna www (widok glowny klienta)
@@ -30,6 +37,7 @@ def index():
                         flash(f"Dodano {productName} do koszyka.")                    # dodawanie do koszyka
                     else:
                         flash("Nie udało się dodać produktu do koszyka.")
+
         productList = mc.showProducts(session.get("loggedClient"), "client")
         productListLen = len(productList)
         parsedProductList = []
@@ -48,23 +56,26 @@ def index():
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():                                                            # ekran logowania klienta
-    if request.method == "POST":                                        # samowywolanie lub z innej podstrony
-        if "login" in request.form:
-            print("loguje...")
-            clientID = mc.clientLogin(request.form.get("email-input"), request.form.get("password-input"))
-            if clientID is not None:
-                print("Gitara siema!")
-                session["loggedClient"] = clientID
-                mc.prepareProductsToShow(session.get("loggedClient"), "client", mc.getAllProductsFromDB())
-                mc.cleanMemory(session.get("loggedClient"), sessionTimeInSeconds, "client")
-                return redirect(url_for("index"))
-            else:
-                print("Nie udało się zalogować!")
-                flash("Nie udało się zalogować! Wprowadź poprawny login i hasło lub przejdź do rejestracji.", "error")
-        elif "register" in request.form:
-            return redirect(url_for("register"))
+    if "loggedClient" not in session or not mc.clientCheckIfLogged(session.get("loggedClient")):
+        if request.method == "POST":                                        # samowywolanie lub z innej podstrony
+            if "login" in request.form:
+                print("loguje...")
+                clientID = mc.clientLogin(request.form.get("email-input"), request.form.get("password-input"))
+                if clientID is not None:
+                    print("Gitara siema!")
+                    session["loggedClient"] = clientID
+                    mc.prepareProductsToShow(session.get("loggedClient"), "client", mc.getAllProductsFromDB())
+                    mc.cleanMemory(session.get("loggedClient"), sessionTimeInSeconds, "client")
+                    return redirect(url_for("index"))
+                else:
+                    print("Nie udało się zalogować!")
+                    flash("Nie udało się zalogować! Wprowadź poprawny login i hasło lub przejdź do rejestracji.", "error")
+            elif "register" in request.form:
+                return redirect(url_for("register"))
 
-    return render_template("login.html")                                # jesli strona jest wywolana wpisujac localhost:5000/ w pasek przegladarki
+        return render_template("login.html")                                # jesli strona jest wywolana wpisujac localhost:5000/ w pasek przegladarki
+    else:
+        return redirect(url_for("index"))
 
 
 @app.route("/logout", methods=['GET', 'POST'])
@@ -157,28 +168,159 @@ def basket():
         return render_template("basket.html", orderList=basketList, totalPrice=totalPrice, basketEmpty=basketEmpty)
 
 
-@app.route("/emp", methods=['GET', 'POST'])                             # widok glowny pracownika
+@app.route("/emp", methods=['GET', 'POST'])
 def emp():
-    if "loggedEmployee" not in session:
+    if "loggedEmployee" not in session or not mc.employeeCheckIfLogged(session.get("loggedEmployee")):
+        return redirect(url_for("loginEmp"))
+    else:
+        if request.method == "POST":
+            for key in request.form:
+                if key.startswith("remove."):
+                    productID = key.partition('.')[-1]
+                    # mc.employeeConfirmOrder(orderID)
+                    flash("Usunięto produkt!")
+                    return redirect(url_for("emp"))
+                if key.startswith("edit"):
+                    productID = key.partition('.')[-1]
+                    # mc.employeeCancelOrder(orderID)
+                    flash("Edytowano produkt.")
+                    return redirect(url_for("emp"))
+
+        productList = mc.showProducts(session.get("loggedEmployee"), "employee")
+        productListLen = len(productList)
+        parsedProductList = []
+        rowList = []
+        for i in range(productListLen):
+            if i % 3 == 2:
+                rowList.append(productList[i])
+                parsedProductList.append(rowList.copy())
+                rowList.clear()
+            else:
+                rowList.append(productList[i])
+        parsedProductList.append(rowList.copy())
+
+        return render_template("productsEmp.html", productList=parsedProductList, modify=session.get('modify'))
+
+
+@app.route("/productsEmp", methods=['GET', 'POST'])
+def productsEmp():
+    if "loggedEmployee" not in session or not mc.employeeCheckIfLogged(session.get("loggedEmployee")):
+        return redirect(url_for("loginEmp"))
+    else:
+        mc.prepareProductsToShow(session.get("loggedEmployee"), "employee", mc.getAllProductsFromDB())
+        session["modify"] = False
+        return redirect(url_for("emp"))
+
+
+@app.route("/loginEmp", methods=['GET', 'POST'])
+def loginEmp():
+    if "loggedEmployee" not in session or not mc.employeeCheckIfLogged(session.get("loggedEmployee")):
+        if request.method == "POST":                                        # samowywolanie lub z innej podstrony
+            if "login" in request.form:
+                employeeID = mc.employeeLogin(request.form.get("email-input"), request.form.get("password-input"))
+                if employeeID is not None:
+                    print("Gitara siema!")
+                    session["loggedEmployee"] = employeeID
+                    mc.cleanMemory(session.get("loggedEmployee"), sessionTimeInSeconds, "employee")
+                    return redirect(url_for("productsEmp"))
+                else:
+                    print("Nie udało się zalogować!")
+                    flash("Nie udało się zalogować! Wprowadź poprawny login i hasło.", "error")
+
+        return render_template("loginEmp.html")                                # jesli strona jest wywolana wpisujac localhost:5000/ w pasek przegladarki
+    else:
+        return redirect(url_for("emp"))
+
+
+@app.route("/logoutEmp", methods=['GET', 'POST'])
+def logoutEmp():
+    if "loggedEmployee" not in session or not mc.employeeCheckIfLogged(session.get("loggedEmployee")):
+        return redirect(url_for("loginEmp"))
+    else:
+        mc.employeeLogout(session.get("loggedClient"))
+        session.pop("loggedEmployee")
+        flash("Zostałeś wylogowany")
+        return redirect(url_for("loginEmp"))
+
+
+@app.route("/productsUnavailableEmp", methods=['GET', 'POST'])                             # widok glowny pracownika
+def productsUnavailableEmp():
+    if "loggedEmployee" not in session or not mc.employeeCheckIfLogged(session.get("loggedEmployee")):
+        return redirect(url_for("loginEmp"))
+    else:
+        if request.method == "POST":
+            pass
+        mc.prepareProductsToShow(session.get("loggedEmployee"), "employee", mc.employeeShowProductsUnavailable())
+        session["modify"] = False
+        return redirect(url_for("emp"))
+
+
+@app.route("/ordersInProgressEmp", methods=['GET', 'POST'])                             # widok glowny pracownika
+def ordersInProgressEmp():
+    if "loggedEmployee" not in session or not mc.employeeCheckIfLogged(session.get("loggedEmployee")):
+        return redirect(url_for("loginEmp"))
+    else:
+        if request.method == "POST":
+            for key in request.form:
+                if key.startswith("confirm."):
+                    orderID = key.partition('.')[-1]
+                    mc.employeeConfirmOrder(orderID)
+                    flash("Zrealizowano zamówienie!")
+                    return redirect(url_for("ordersInProgressEmp"))
+                if key.startswith("cancel"):
+                    orderID = key.partition('.')[-1]
+                    mc.employeeCancelOrder(orderID)
+                    flash("Odrzuciłeś zamówienie!")
+                    return redirect(url_for("ordersInProgressEmp"))
+
+        orderList = mc.employeeShowViewOrderInProgress()
+        if len(orderList) > 0:
+            ordersEmpty = False
+        else:
+            ordersEmpty = True
+
+        return render_template("viewOrders.html", orderList=orderList, inProgress=True, ordersEmpty=ordersEmpty)
+
+
+@app.route("/ordersCompletedEmp", methods=['GET', 'POST'])  # widok glowny pracownika
+def ordersCompletedEmp():
+    if "loggedEmployee" not in session or not mc.employeeCheckIfLogged(session.get("loggedEmployee")):
         return redirect(url_for("loginEmp"))
     else:
         if request.method == "POST":
             pass
 
-        return render_template("employee.html")
+        orderList = mc.employeeShowViewOrderCompleted()
+        if len(orderList) > 0:
+            ordersEmpty = False
+        else:
+            ordersEmpty = True
+
+        return render_template("viewOrders.html", orderList=orderList, inProgress=False, ordersEmpty=ordersEmpty)
 
 
-@app.route("/loginEmp", methods=['GET', 'POST'])
-def loginEmp():
-    if request.method == "POST":                                        # samowywolanie lub z innej podstrony
-        if "login" in request.form:
-            employeeID = mc.employeeLogin(request.form.get("email-input"), request.form.get("password-input"))
-            if employeeID is not None:
-                print("Gitara siema!")
-                session["loggedEmployee"] = employeeID
-                return redirect(url_for("emp"))
-            else:
-                print("Nie udało się zalogować!")
-                flash("Nie udało się zalogować! Wprowadź poprawny login i hasło.", "error")
+@app.route("/ordersCanceledEmp", methods=['GET', 'POST'])  # widok glowny pracownika
+def ordersCanceledEmp():
+    if "loggedEmployee" not in session or not mc.employeeCheckIfLogged(session.get("loggedEmployee")):
+        return redirect(url_for("loginEmp"))
+    else:
+        if request.method == "POST":
+            pass
 
-    return render_template("loginEmp.html")                                # jesli strona jest wywolana wpisujac localhost:5000/ w pasek przegladarki
+        orderList = mc.employeeShowViewOrderCanceled()
+        if len(orderList) > 0:
+            ordersEmpty = False
+        else:
+            ordersEmpty = True
+
+        return render_template("viewOrders.html", orderList=orderList, inProgress=False, ordersEmpty=ordersEmpty)
+
+
+@app.route("/modifyItemsEmp", methods=['GET', 'POST'])
+def modifyItemsEmp():
+    if "loggedEmployee" not in session or not mc.employeeCheckIfLogged(session.get("loggedEmployee")):
+        return redirect(url_for("loginEmp"))
+    else:
+        session["modify"] = True
+        mc.prepareProductsToShow(session.get("loggedEmployee"), "employee", mc.getAllProductsFromDB())
+        return redirect(url_for("emp"))

@@ -34,6 +34,9 @@ class User:
     def startTimer(self):
         self.timer.start()
 
+    def stopTimer(self):
+        self.timer.cancel()
+
     def setCurrentlyViewedProducts(self, productList):
         self.currentlyViewedProducts = productList
 
@@ -44,8 +47,8 @@ class User:
 class Client(User):
     def __init__(self, userID, name, surname, email, phoneNumber, address, password):
         super().__init__(userID, name, surname, email, phoneNumber, address, password)
-        self.shopHist = []                      # reszta orders klienta
-        self.basket = []                        # orders "w koszyku"
+        self.shopHist = []                      # reszta orders klienta     # badziew z ktorego sie wycofalismy
+        self.basket = []                        # orders "w koszyku"        # badziew z ktorego sie wycofalismy
 
     def addOrderShopHist(self, order):
         self.shopHist.append(order)
@@ -71,4 +74,10 @@ class Employee(User):
         super().__init__(userID, name, surname, email, phoneNumber, address, password)
         self.position = position
         self.salary = salary
+        self.currentlyViewedOrders = None     # indywidualna lista wyświetlanych zamówień dla każdego pracownika
 
+    def setCurrentlyViewedOrders(self, employeeViewOrderList):
+        self.currentlyViewedOrders = employeeViewOrderList
+
+    def getCurrentlyViewedOrders(self):
+        return self.currentlyViewedOrders

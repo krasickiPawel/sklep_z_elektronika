@@ -10,19 +10,25 @@ class Product:
         return self.productID
 
     def getName(self):
-        return self.name
+        return self.name.capitalize()
 
     def getPrice(self):
         return self.price
 
     def getCategory(self):
-        return self.category
+        return self.category.capitalize()
 
     def getAmount(self):
         if self.amount > 0:
             return f"{self.amount} dostępnych sztuk"
         else:
             return 'Produkt niedostępny'
+
+    def isAvailable(self):
+        if self.amount > 0:
+            return "white"
+        else:
+            return "LightCoral"
 
     def toString(self):
         return f"{self.productID}, {self.name}, {self.price}, {self.category}, {self.amount}"

@@ -1,16 +1,13 @@
 {% extends "layout.html" %}
 
 {% block style %}
-. {
-    width: 100%;
-    position: absolute;
-    margin: auto;
-    text-align: center;
-}
+
 .order-history-table {
-    margin-left: 5px;
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
 }
-.tr:hover {
+.tr-td:hover {
     background-color: AliceBlue;
 }
 .none-info {
@@ -19,6 +16,12 @@
     margin: auto;
     text-align: center;
     font-size: large;
+}
+.td, .th {
+    padding: 5px;
+}
+.tr-th {
+    background-color: LightYellow;
 }
 {% endblock %}
 
@@ -33,6 +36,38 @@
 {% else %}
 
 <table class="order-history-table">  <!-- style="width:100%;" -->
+    <tr class="tr tr-th">
+        <th class="th">ID zamówienia</th>
+        <th class="th">Kategoria produktu</th>
+        <th class="th">Produkt</th>
+        <th class="th">Cena</th>
+        <th class="th">Data ustawienia statusu</th>
+        <th class="th">Status zamówienia</th>
+    </tr>
+    {% for order in shopHist%}
+    <tr class="tr tr-td">
+        <td class="td">
+            <strong class="order-data-text">{{order.getOrderID()}}</strong>
+        </td>
+        <td class="td">
+            <div class="order-data-text">{{order.getProductCategory()}}</div>
+        </td>
+        <td class="td">
+            <div class="order-data-text">{{order.getProductName()}}</div>
+        </td>
+        <td class="td">
+            <div class="order-data-text">{{order.getProductPrice()}} zł</div>
+        </td>
+        <td class="td">
+            <div class="order-data-text">{{order.getOrderDate()}}</div>
+        </td>
+        <td class="td">
+            <strong class="order-data-text">{{order.getOrderStatus()}}</strong>
+        </td>
+    </tr>
+    {% endfor %}
+
+    <!--
     {% for order in shopHist%}
     <tr class="tr">
         <td class="td">
@@ -42,6 +77,7 @@
         </td>
     </tr>
     {% endfor %}
+    -->
 
 </table>
 {% endif %}

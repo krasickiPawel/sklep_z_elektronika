@@ -2,7 +2,8 @@ from sklep_z_elektronika.controller.mainController import MainController
 from sklep_z_elektronika.controller.wwwController import runApp
 
 if __name__ == '__main__':
-    runApp()
+    public = False
+    runApp('25.93.80.192', 'root', 'mysql123', 'test_elektronika', 900, "p&n", public)
 
     # name = "main"
     # surname = "surmain"

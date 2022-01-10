@@ -39,6 +39,10 @@
         text-align: center;
         border-radius: 5px;
         margin: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 80%;
     }
     .nav-link:hover {
         background-color: #AAAAFF;
@@ -57,6 +61,7 @@
     </style>
     {% endblock %}
 </head>
+
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
   <div class="container-fluid">
@@ -85,6 +90,8 @@
     </div>
   </div>
 </nav>
+
+<div class="container-fluid">
 {% with messages = get_flashed_messages() %}
   {% if messages %}
     <!-- <ul class=flashes> -->
@@ -105,6 +112,7 @@
 {% block body %}
 
 {% endblock %}
+</div>
 
 <script>
 var close = document.getElementsByClassName("closebtn");

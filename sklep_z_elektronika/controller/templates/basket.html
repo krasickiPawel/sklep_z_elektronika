@@ -2,7 +2,9 @@
 
 {% block style %}
 .order-table {
-    width: 100%;
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
 }
 .order-data-category {
     text-transform: capitalize;
@@ -15,9 +17,6 @@
 .order-data {
     width: 25%;
 }
-.row {
-    margin: 15px;
-}
 .btn {
     border: 1px solid green;
 }
@@ -26,7 +25,11 @@
     background-color: green;
 }
 .btn-buy {
-    background-color: #77FFBB;
+    background-color: LightGreen;
+    font-weight: bold;
+}
+.total-price {
+    font-weight: bold;
 }
 .none-info {
     color: #220022
@@ -35,7 +38,16 @@
     text-align: center;
     font-size: large;
 }
-.row:hover {
+.row {
+    margin: 15px;
+}
+.row-th {
+    background-color: LightYellow;
+}
+.row-summary {
+    background-color: LightYellow;
+}
+.row-td:hover {
     background-color: AliceBlue;
 }
 .th {
@@ -58,14 +70,14 @@ th:hover {
 {% else %}
 <form method="post" action="/basket">
     <table class="order-table">  <!-- style="width:100%;" -->
-        <tr class="row">
+        <tr class="row row-th">
             <th class="th">Kategoria</th>
             <th class="th">Produkt</th>
             <th class="th">Cena</th>
             <th class="th">Akcja</th>
         </tr>
         {% for order in orderList%}
-        <tr class="row">
+        <tr class="row row-td">
             <td class="order-data">
                 <strong class="order-data-category">{{order[2]}}</strong>
             </td>
@@ -80,7 +92,7 @@ th:hover {
             </td>
         </tr>
         {% endfor %}
-        <tr class="row">
+        <tr class="row row-summary">
             <td class="order-data">
             </td>
             <td class="order-data">

@@ -4,9 +4,11 @@ class LoggedUsers:
         self.loggedEmployees = dict()
 
     def addLoggedClient(self, clientID, client):
+        print("xd login")
         self.loggedClients[clientID] = client
 
     def removeLoggedClient(self, clientID):
+        print("xd logout")
         self.loggedClients.pop(clientID)
 
     def getLoggedClient(self, clientID):
@@ -14,6 +16,9 @@ class LoggedUsers:
 
     def checkIfLogged(self, clientID):
         return clientID in self.loggedClients
+
+    def checkIfEmpLogged(self, employeeID):
+        return employeeID in self.loggedEmployees       # zwraca True lub False
 
     def addLoggedEmployee(self, employeeID, employee):
         self.loggedEmployees[employeeID] = employee
