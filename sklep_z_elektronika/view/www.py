@@ -8,7 +8,7 @@ sessionTimeInSeconds = None
 app = Flask(__name__)                                                   # serwer Flask ktory zaimportowalem wyzej
 
 
-def runApp(host, user, password, database, givenSessionTime, secretKey, public=False):       # wlacznik serwera pythonowego ktory umozliwia wyswietlanie stron w przegladarce
+def runApp(host, user, password, database, givenSessionTime, secretKey, public=True, debug=True):       # wlacznik serwera pythonowego ktory umozliwia wyswietlanie stron w przegladarce
     global mc
     global sessionTimeInSeconds
 
@@ -17,10 +17,13 @@ def runApp(host, user, password, database, givenSessionTime, secretKey, public=F
     app.permanent_session_lifetime = timedelta(seconds=sessionTimeInSeconds)
     app.secret_key = secretKey
 
-    if public:
-        app.run(host="0.0.0.0")
+    if not public:
+        if debug:
+            app.run(debug=True)
+        else:
+            app.run(host="0.0.0.0")
     else:
-        app.run(debug=True)
+        app.run()
 
 
 @app.route("/", methods=['GET', 'POST'])                                # strona glowna www (widok glowny klienta)
@@ -89,7 +92,7 @@ def logout():
         return redirect(url_for("login"))
 
 
-@app.route("/search", methods=['GET', 'POST'])                          # TODO dużo do poprawy - zrobić jakoś filtrowanie i wyswietlanie produktow
+@app.route("/search", methods=['GET', 'POST'])
 def search():
     if "loggedClient" not in session or not mc.clientCheckIfLogged(session.get("loggedClient")):
         return redirect(url_for("login"))
@@ -106,7 +109,7 @@ def search():
         return redirect(url_for("index"))
 
 
-@app.route("/register", methods=['GET', 'POST'])                        # TODO Natalka poćwicz na tym
+@app.route("/register", methods=['GET', 'POST'])
 def register():
     if request.method == "POST":
         for key in request.form:

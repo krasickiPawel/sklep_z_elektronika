@@ -1,9 +1,34 @@
-from sklep_z_elektronika.controller.mainController import MainController
-from sklep_z_elektronika.controller.wwwController import runApp
+from sklep_z_elektronika.view.www import app, runApp
+import os
+
+
+def fileRead(fileName):
+    with open(fileName) as file:
+        configInfo = file.readlines()
+    for i in range(len(configInfo)):
+        configInfo[i] = configInfo[i].removesuffix("\n")
+    return configInfo
+
+
+def main():
+    fileToRead = os.path.abspath('config.txt')
+    config = fileRead(fileToRead)
+
+    if config is not None and len(config) == 8:
+        public, debug, host, user, password, database, givenSessionTime, secretKey = config
+        public = bool(int(public))
+        debug = bool(int(debug))
+        givenSessionTime = int(givenSessionTime)
+
+        runApp(host, user, password, database, givenSessionTime, secretKey, public, debug)
+    else:
+        print("Brak odpowiedniego pliku konfiguracyjnego lub nie zawiera on wszystkich parametrów!")
+        exit()
+
 
 if __name__ == '__main__':
-    public = False
-    runApp('25.93.80.192', 'root', 'mysql123', 'test_elektronika', 900, "p&n", public)
+    main()
+
 
     # name = "main"
     # surname = "surmain"
@@ -123,6 +148,3 @@ if __name__ == '__main__':
     # wylogowywanie klienta
     # mc.clientLogout(clientID)
     # print("Zostałeś wylogowany!")
-
-
-    # TODO zrobić wszystko dla pracownika i przetestować ale najpierw Packet Tracer  i wysłać sprawko z UP :)
