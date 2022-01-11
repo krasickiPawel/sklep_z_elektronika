@@ -24,6 +24,9 @@ class Product:
         else:
             return 'Produkt niedostępny'
 
+    def getRawAmount(self):
+        return self.amount
+
     def isAvailable(self):
         if self.amount > 0:
             return "white"

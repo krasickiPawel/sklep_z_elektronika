@@ -1,0 +1,132 @@
+{% extends "layoutEmp.html" %}
+
+{% block style %}
+.center {
+    text-align: center;
+}
+.input {
+    border-radius: 10px;
+    width: 40%;
+    text-align: center;
+}
+.form-data {
+
+}
+.btn-add {
+    border: 1px solid green;
+    font-weight: bold;
+    border-radius: 10px;
+}
+.btn-add:hover {
+    color: white;
+    background-color: green;
+}
+.btn-edit {
+    border: 1px solid DarkSeaGreen;
+    font-weight: bold;
+    border-radius: 10px;
+}
+.btn-edit:hover {
+    background-color: DarkSeaGreen;
+}
+.btn-delete {
+    border: 1px solid red;
+    font-weight: bold;
+    border-radius: 10px;
+}
+.btn-delete:hover {
+    color: white;
+    background-color: red;
+}
+.btn-cancel {
+    border: 1px solid MediumSlateBlue;
+    font-weight: bold;
+    border-radius: 10px;
+}
+.btn-cancel:hover {
+    color: white;
+    background-color: MediumSlateBlue;
+}
+{% endblock %}
+
+
+
+<!-- z jakims if edit -->
+<!-- z jakims if delete rozwazyc -->
+
+{% block body %}
+<div class="center">
+    <br>
+
+    {% if edit %}
+    <h4 class="topic">Edytuj dane produktu</h4>
+    {% elif delete %}
+    <h4 class="topic">Czy na pewno chcesz usunąć ten produkt?</h4>
+    {% else %}
+    <h4 class="topic">Wrowadź dane produktu</h4>
+    {% endif %}
+
+    <br>
+
+    {% if delete or edit %}
+
+    <form method="post" action="/addEditEmp">
+        <p class="form-data input-description">Kategoria</p>
+        <input class="form-data input" type="text" name="edit-category-input" id="edit-category" value="{{product.getCategory()}}" required/>
+        <p></p>
+        <p class="form-data input-description">Produkt</p>
+        <input class="form-data input" type="text" name="edit-name-input" id="edit-name" value="{{product.getName()}}" required/>
+        {% if delete %}
+        {% endif %}
+        <p></p>
+        <p class="form-data input-description">Cena</p>
+        <input class="form-data input" type="number" step="0.01" name="edit-price-input" id="edit-price" min="0" value="{{product.getPrice()}}" required/>
+        <p></p>
+        <p class="form-data input-description">Ilość dostępnych sztuk</p> <!-- to jest niebezpieczne w edit, lepiej zrobić jakiś ++, -- -->
+        <input class="form-data input" type="number" name="edit-amount-input" id="edit-amount" min="1" value="{{product.getRawAmount()}}" required/>
+        <p></p>
+        <br>
+        {% if edit %}
+        <button type="submit" class="btn btn-edit" name="edit.{{product.getProductID()}}">Edytuj produkt</button>
+        {% elif delete %}
+        <button type="submit" class="btn btn-delete" name="delete.{{product.getProductID()}}">Usuń produkt</button>
+        <button type="submit" class="btn btn-cancel" name="cancel.{{product.getProductID()}}">Anuluj</button>
+        {% else %}
+
+        {% endif %}
+    </form>
+
+    {% else %}
+    <form method="post" action="/addEditEmp">
+        <p class="form-data input-description">Kategoria</p>
+        <input class="form-data input" type="text" name="category-input" id="category" required/>
+        <p></p>
+        <p class="form-data input-description">Produkt</p>
+        <input class="form-data input" type="text" name="name-input" id="name" required/>
+        <p></p>
+        <p class="form-data input-description">Cena</p>
+        <input class="form-data input" type="number" step="0.01" name="price-input" id="price" min="0" required/>
+        <p></p>
+        <p class="form-data input-description">Ilość dostępnych sztuk</p> <!-- to jest niebezpieczne w edit, lepiej zrobić jakiś ++, -- -->
+        <input class="form-data input" type="number" name="amount-input" id="amount" min="1" required/>
+        <p></p>
+        <br>
+        <button type="submit" class="btn btn-add" name="add.">Dodaj produkt</button>
+    </form>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+
+
+{% block script %}
+{% if delete %}
+
+document.getElementById("edit-category").disabled = true;
+document.getElementById("edit-name").disabled = true;
+document.getElementById("edit-price").disabled = true;
+document.getElementById("edit-amount").disabled = true;
+
+{% endif %}
+{% endblock %}

@@ -390,13 +390,66 @@ class MainController:
         return employee.getCurrentlyViewedOrders()
 
     def employeeCancelOrder(self, orderID):
+        orderID = int(orderID)
+
         ec = EmployeeController(self.db)
         ec.connect()
         ec.cancelOrder(orderID)
         ec.disconnect()
 
     def employeeConfirmOrder(self, orderID):
+        orderID = int(orderID)
+
         ec = EmployeeController(self.db)
         ec.connect()
         ec.confirmOrder(orderID)
         ec.disconnect()
+
+    def employeeAddProduct(self, name, price, category, amount):
+        ec = EmployeeController(self.db)
+        ec.connect()
+        ec.addNewProduct(name, price, category, amount)
+        ec.disconnect()
+
+    def employeeEditProduct(self, productID, name, price, category, amount):
+        productID = int(productID)
+
+        ec = EmployeeController(self.db)
+        ec.connect()
+
+        ec.editProductName(name, productID)
+        time.sleep(0.02)
+
+        ec.editProductPrice(price, productID)
+        time.sleep(0.02)
+
+        ec.editProductCategory(category, productID)
+        time.sleep(0.02)
+
+        ec.editProductAmount(amount, productID)
+        time.sleep(0.02)
+
+        ec.disconnect()
+
+    def employeeDeleteProduct(self, productID):
+        productID = int(productID)
+        ec = EmployeeController(self.db)
+        ec.connect()
+
+        ec.deleteProduct(productID)
+
+        ec.disconnect()
+
+    def employeeSearchOrderUsingID(self, orderID):
+        ec = EmployeeController(self.db)
+        ec.connect()
+        orderFromDB = ec.searchOrderUsingID(orderID)[0]
+        ec.disconnect()
+
+        orderID, clientID, productID, clientName, clientSurname, clientEmail, clientPhone, clientAddress, productName, productCategory, productPrice, orderDate, orderStatus = orderFromDB
+
+        order = EmployeeViewOrder(orderID, clientID, productID, clientName, clientSurname, clientEmail, clientPhone,
+                                  clientAddress, productName, productCategory, productPrice, orderDate,
+                                  orderStatus)
+
+        return [order]

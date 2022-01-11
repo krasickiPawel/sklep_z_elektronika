@@ -1,0 +1,51 @@
+{% extends "layoutEmp.html" %}
+{% block style %}
+.center {
+    text-align: center;
+}
+.input {
+    border-radius: 10px;
+    width: 40%;
+    text-align: center;
+    margin-left: 75px;
+}
+.btn {
+    border: 1px solid green;
+    font-weight: bold;
+    border-radius: 10px;
+    width: 75px;
+}
+.btn:hover {
+    color: white;
+    background-color: green;
+}
+
+{% endblock %}
+
+
+
+
+{% block body %}
+<div class="center">
+    <br>
+
+    <form method="post" action="/searchEmp">
+        <p class="form-data input-description">Wyszukiwanie produktu po nazwie</p>
+        <input class="form-data input" type="text" name="product-name-input" id="product-name" placeholder="nazwa produktu"/>
+        <button type="submit" class="btn" name="searchProductName.">Szukaj</button>
+        <p></p>
+        <br>
+        <p class="form-data input-description">Wyszukiwanie produktu po id</p>
+        <input class="form-data input" type="number" name="product-id-input" id="product-id" min="1" placeholder="id produktu"/>
+        <button type="submit" class="btn" name="searchProductID.">Szukaj</button>
+        <p></p>
+        <br>
+        <p class="form-data input-description">Wyszukiwanie zmówienia po id</p>
+        <input class="form-data input" type="number" name="order-id-input" id="order-id" min="1" placeholder="id zamówienia"/>
+        <button type="submit" class="btn" name="searchOrderID.">Szukaj</button>
+        <p></p>
+    </form>
+
+
+</div>
+{% endblock %}

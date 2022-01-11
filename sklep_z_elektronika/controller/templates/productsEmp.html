@@ -1,8 +1,10 @@
 {% extends "layoutEmp.html" %}
 {% block style %}
 
+
 .btn-remove {
     border: 2px solid red;
+    border-radius: 10px;
 }
 .btn-remove:hover {
     background-color: red;
@@ -10,6 +12,7 @@
 }
 .btn-edit {
     border: 2px solid yellow;
+    border-radius: 10px;
 }
 .btn-edit:hover {
     background-color: yellow;
@@ -26,9 +29,8 @@
 .product-data {
     text-align: center;
     width: 32%;
-    border: 1px solid black;
     border-radius: 15px;
-    margin: 2px;
+    margin: 5px;
     <!-- background-color: #E1F5F8; -->
 }
 .td-div {
@@ -37,7 +39,7 @@
     height: 100%;
 }
 .td-div:hover {
-    background-color: AliceBlue;
+
 }
 .product-data-p {
     text-transform: capitalize;
@@ -45,28 +47,33 @@
 .product-data-strong {
     text-transform: capitalize;
 }
+body {
+  background-color: LightBlue;
+}
 {% endblock %}
 
 <!-- <button class="btn btn-outline-success" type="submit">Szukaj</button> -->
 {% block body %}
-
+<br>
 <table class="product-table">  <!-- style="width:100%;" -->
     {% for rowList in productList%}
     <tr class="row">
         {% for product in rowList%}
         <td class="product-data" style="background-color: {{product.isAvailable()}};">
             <div class="td-div">
-            <p>id: {{product.getProductID()}}</p>
-            <strong class="product-data-strong">{{product.getCategory()}}</strong>
-            <p class="product-data-p">{{product.getName()}}</p>
-            <p>{{product.getPrice()}} zł</p>
-            <p>{{product.getAmount()}}</p>
-            <form method="post" action="/emp">
-            {% if modify %}
-            <button type="submit" class="btn btn-remove" name="remove.{{product.getProductID()}}">Usuń</button>
-            {% endif %}
-            <button type="submit" class="btn btn-edit" name="edit.{{product.getProductID()}}">Edytuj</button>
-            </form>
+                <div class="td-line"><p>id: {{product.getProductID()}}</p></div>
+                <div class="td-line"><strong class="product-data-strong">{{product.getCategory()}}</strong></div>
+                <div class="td-line-name"><p class="product-data-p">{{product.getName()}}</p></div>
+                <div class="td-line"><p>{{product.getPrice()}} zł</p></div>
+                <div class="td-line"><p>{{product.getAmount()}}</p></div>
+                <form method="post" action="/emp">
+                    <div class="td-line">
+                    {% if modify %}
+                    <button type="submit" class="btn btn-remove" name="remove.{{product.getProductID()}}">Usuń</button>
+                    {% endif %}
+                    <button type="submit" class="btn btn-edit" name="edit.{{product.getProductID()}}">Edytuj</button>
+                    </div>
+                </form>
             </div>
         </td>
         {% endfor %}

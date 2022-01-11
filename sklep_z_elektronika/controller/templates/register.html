@@ -1,9 +1,43 @@
 {% extends "layoutLogin.html" %}
 {% block style %}
-
+.center {
+    text-align: center;
+}
 {% endblock %}
 
 
 {% block body %}
-    <p>aaaaaaaaaaaaaaaahahah</p>
+<div class="center">
+    <br>
+    <h2 class="topic">Zarejestruj się</h2>
+    <br>
+    <form method="post" action="/register">
+        <p class="form-data input-description">Imię</p>
+        <input class="form-data input" type="text" name="name-input" id="name" required/>
+        <p></p>
+
+        <p class="form-data input-description">Nazwisko</p>
+        <input class="form-data input" type="text" name="surname-input" id="surname" required/>
+        <p></p>
+
+        <p class="form-data input-description">Email</p>
+        <input class="form-data input" type="email" name="email-input" id="email" required/>
+        <p></p>
+
+        <p class="form-data input-description">Telefon</p>
+        <input class="form-data input" type="tel" pattern="[0-9]{9}" placeholder="123456789" name="phone-input" id="phone" required/>
+        <p></p>
+
+        <p class="form-data input-description">Adres zamieszkania</p>
+        <input class="form-data input" type="text" name="address-input" id="address" required/>
+        <p></p>
+
+        <p class="form-data input-description">Hasło</p>
+        <input class="form-data input" type="password" name="password-input" id="password" required/>
+        <p></p>
+
+        <button type="submit" class="btn btn-register" name="register.">Zarejestruj się</button>
+
+    </form>
+</div>
 {% endblock %}
