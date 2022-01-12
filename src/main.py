@@ -11,7 +11,7 @@ def fileRead(fileName):
 
 
 def main():
-    fileToRead = os.path.abspath('config.txt')
+    fileToRead = os.path.abspath('src/config.txt')
     config = fileRead(fileToRead)
 
     if config is not None and len(config) == 8:
