@@ -253,7 +253,7 @@ def logoutEmp():
     if "loggedEmployee" not in session or not mc.employeeCheckIfLogged(session.get("loggedEmployee")):
         return redirect(url_for("loginEmp"))
     else:
-        mc.employeeLogout(session.get("loggedClient"))
+        mc.employeeLogout(session.get("loggedEmployee"))
         session.pop("loggedEmployee")
         flash("Zostałeś wylogowany")
         return redirect(url_for("loginEmp"))
