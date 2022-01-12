@@ -11,7 +11,7 @@ def fileRead(fileName):
 
 
 def main():
-    fileToRead = os.path.abspath('src/config.txt')
+    fileToRead = os.path.abspath('config.txt')
     config = fileRead(fileToRead)
 
     if config is not None and len(config) == 8:
@@ -28,7 +28,6 @@ def main():
 
 if __name__ == '__main__':
     main()
-    pass
 
     # name = "main"
     # surname = "surmain"
