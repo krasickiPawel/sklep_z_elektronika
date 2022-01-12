@@ -1,4 +1,4 @@
-from sklep_z_elektronika.view.www import app, runApp
+from src.view.www import app, runApp
 import os
 
 
@@ -28,7 +28,7 @@ def main():
 
 if __name__ == '__main__':
     main()
-
+    pass
 
     # name = "main"
     # surname = "surmain"

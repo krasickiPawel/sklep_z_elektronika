@@ -1,9 +1,9 @@
-from sklep_z_elektronika.model.database import Database
-from sklep_z_elektronika.model.user import Client, Employee
-from sklep_z_elektronika.model.loggedUsers import LoggedUsers
-from sklep_z_elektronika.controller.userController import ClientController, EmployeeController, UserController
-from sklep_z_elektronika.model.order import Order, HistOrder, EmployeeViewOrder
-from sklep_z_elektronika.model.product import Product
+from src.model.database import Database
+from src.model.user import Client, Employee
+from src.model.loggedUsers import LoggedUsers
+from src.controller.userController import ClientController, EmployeeController, UserController
+from src.model.order import Order, HistOrder, EmployeeViewOrder
+from src.model.product import Product
 from threading import Timer
 import time
 

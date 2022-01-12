@@ -1,4 +1,4 @@
-from sklep_z_elektronika.controller.mainController import MainController
+from src.controller.mainController import MainController
 from flask import Flask, flash, render_template, request, redirect, url_for, session
 from datetime import timedelta
 

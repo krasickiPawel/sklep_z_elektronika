@@ -1,4 +1,4 @@
-from sklep_z_elektronika.controller.databaseController import DatabaseController
+from src.controller.databaseController import DatabaseController
 
 
 class UserController(DatabaseController):
