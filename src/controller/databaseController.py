@@ -7,11 +7,8 @@ class DatabaseController:
         self.cursor = None
 
     def connect(self):
-        print(self.dataBase.host)
-        print(self.dataBase.user)
-        print(self.dataBase.password)
-        print(self.dataBase.database)
-        self.dataBase.db = mysql.connector.connect(host=self.dataBase.host, user=self.dataBase.user, password=self.dataBase.password, database=self.dataBase.database)
+        self.dataBase.db = mysql.connector.connect(host=self.dataBase.host, user=self.dataBase.user,
+                                                   password=self.dataBase.password, database=self.dataBase.database)
         self.cursor = self.dataBase.db.cursor()
 
     def disconnect(self):

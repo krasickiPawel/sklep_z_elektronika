@@ -57,7 +57,6 @@ class MainController:
         else:
             ec.disconnect()
             return None
-            # TODO w www jeśli _id != None to dodać do ciasteczek czy tam gdzieś i później używać do getLoggedUser
 
     def clientRegister(self, name, surname, email, phoneNumber, address, password):
         cc = ClientController(self.db)
@@ -67,7 +66,7 @@ class MainController:
 
         cc.disconnect()
 
-        return True if success == 1 else False  # TODO sprawdzic w www czy udalo sie zalogowac
+        return True if success == 1 else False
 
     def getLoggedClient(self, _id):
         return self.loggedUsers.getLoggedClient(_id)
