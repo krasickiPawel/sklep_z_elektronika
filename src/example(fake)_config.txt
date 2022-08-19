@@ -1,0 +1,8 @@
+0
+0
+192.168.0.105
+root
+password
+db_schema
+900
+secret_key
