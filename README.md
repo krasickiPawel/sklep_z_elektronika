@@ -48,7 +48,7 @@ In the src directory
 
 ### 3.1 Go to http://localhost:5000/ and register or login as a client and have fun searching and buying the available products.
 
-### 3.2 Go to localhost:5000/emp/ and login as an employee and have fun editing products, finding the right ones, or adding new ones
+### 3.2 Go to http://localhost:5000/emp/ and login as an employee and have fun editing products, finding the right ones, or adding new ones
 
 
 ## License
