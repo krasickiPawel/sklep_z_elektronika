@@ -12,6 +12,7 @@ This application is one of my first web app python projects, so it requires some
 * mysql.connector
 * HTML
 * CSS
+* JavaScript
 
 ## Getting Started
 
